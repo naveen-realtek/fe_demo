@@ -34,6 +34,6 @@ jobs:
     steps:
       - name: Trigger Jenkins Job
         run: |
-          curl -X POST "http://192.168.1.65:8080/job/YourJenkinsJobName/buildWithParameters" \
+          curl -X POST "http://192.168.1.65:8080/job/ github_actions/buildWithParameters" \
                --user "jenkins_user:jenkins_api_token"
 
