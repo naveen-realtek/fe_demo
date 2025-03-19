@@ -18,7 +18,7 @@ const remotes = {
 
 module.exports = {
     output: {
-        publicPath: "http://192.168.1.66:4001/admin/",
+        publicPath: "http://192.168.1.65:4001/admin/",
     },
   resolve: {
     extensions: [".jsx", ".js", ".json"],
