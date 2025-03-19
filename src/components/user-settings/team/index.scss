@@ -1,0 +1,125 @@
+.team-members-container {
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  
+  .team-members-list {
+    display: flex;
+    flex-wrap: nowrap !important;
+    gap: 8px;
+  }
+  
+  .member-tag {
+    background: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  
+  .more-members {
+    font-size: 12px;
+    cursor: pointer;
+    color: #1890ff;
+  }
+  
+  .member-dropdown-item {
+    padding: 5px 10px;
+    display: block;
+    white-space: nowrap;
+  }
+  
+  .member-tag {
+    background-color: #f1f1f1;
+    color: #586888;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  
+  .more-members {
+    color: #0053a5;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .expanded-members {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 5px;
+    margin-top: 5px;
+  }
+  
+  .show-less {
+    color: #0053a5;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .add-button-team {
+    margin: 10px 0px;
+  }
+  
+  .ant-select-multiple .ant-select-selection-item-remove > .anticon {
+    width: 20px !important;
+  }
+  
+  // --------------------------- Drawer ---------------------------------//
+  
+  .paddding-left{
+    padding-left: 20px !important;
+  }
+  
+  
+  
+  .ant-drawer .ant-drawer-header {
+    background: none !important;
+  }
+  
+  .team-name-title-detailview {
+    font-weight: 500;
+    font-size: 20px;
+    color: #060606;
+    margin-bottom: 0px !important;
+  }
+  
+  .members-count {
+    color: #586888;
+    margin-bottom: 0px;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  
+  .created-on {
+    color: #acacac;
+    font-weight: 400;
+    font-size: 12px;
+  }
+  
+  .date-created-on {
+    color: #25324b;
+    font-weight: 400;
+    font-size: 12px;
+    margin-bottom: 0px;
+  }
+  
+  .reporting-manager-heading,
+  .member-heading {
+    color: #acacac;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  
+  .reporting-manager-name {
+    color: #25324b;
+    font-weight: 500;
+    font-size: 16px;
+  }
+  
+  .diviver-names{
+    margin-top: 0px !important;
+  }

@@ -1,0 +1,95 @@
+// User Roles styles
+.roles-list {
+    ul {
+        padding: 0;
+
+        li {
+            list-style: none;
+        }
+    }
+
+    .roles-list-item {
+        border-radius: 8px;
+        background: #E5E7F3;
+    }
+}
+
+.roles-active-table {
+
+    td,
+    th {
+        padding: 12px 15px;
+    }
+
+    thead {
+        th {
+            border-bottom: 1px solid #586888;
+        }
+    }
+
+    tbody {
+        th {
+            border-bottom: 1px solid #DDDDF8;
+        }
+    }
+
+    .roles-group-head {
+        .tree-view-title {
+            padding: 12px 15px;
+        }
+
+        th {
+            border-bottom: 0px solid #DDDDF8;
+        }
+    }
+
+    .roles-group-body {
+        tr:last-child {
+            th:first-child {
+                span {
+                    &::after {
+                        content: '';
+                        background-color: #FFFFFF;
+                        height: 21px;
+                        width: 15px;
+                        display: inline-block;
+                        margin: 0px 6px -18px -20px;
+                        left: -100%;
+                        position: relative;
+                    }
+                }
+            }
+
+            th {
+                border-bottom: 1px solid #DDDDF8;
+            }
+        }
+
+        th {
+            border-bottom: none;
+        }
+
+        .tree-view-list {
+            span {
+                padding: 12px 15px;
+                border-left: 1px solid #747474;
+                margin-left: 30px;
+                display: inline-block;
+
+                &::before {
+                    content: '';
+                    background-color: #747474;
+                    height: 1px;
+                    width: 15px;
+                    display: inline-block;
+                    margin: 0px 6px 3px -15px;
+                }
+            }
+        }
+
+        td,
+        th {
+            padding: 0;
+        }
+    }
+}

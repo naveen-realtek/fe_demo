@@ -1,0 +1,98 @@
+.admin-breadcrums {
+    padding: 12px 22px 12px 22px;
+    position: fixed;
+    z-index: 9;
+    background-color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    top: 60px !important;
+    height: 60px;
+    width: -webkit-fill-available;
+}
+
+.admin-Layout {
+    padding: 20px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.common-SpaceAdmin {
+    margin-top: 60px;
+    padding: 0px 20px;
+}
+
+.zn-admin-Card {
+    background: white;
+    border-radius: 8px;
+}
+
+.company-Logo.mb-3 {
+    width: 300px;
+    border: 1px solid #DDDCEC;
+    border-radius: 6px;
+    height: 210px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+    }
+
+}
+
+.ant-table-pagination {
+    position: fixed;
+    bottom: 0;
+    right: 10px;
+}
+
+.user-limits-Tab .ant-tabs-nav-wrap {
+    position: fixed !important;
+    width: 100%;
+    box-shadow: 3px 8px 0px 0px #f3f3f3;
+    z-index: 99;
+    background: white;
+
+}
+
+.user-limits-Tab .ant-tabs-content {
+    margin-top: 54px;
+}
+
+.sort-bgFilter {
+    background: #0053A5;
+    border-radius: 4px;
+
+    svg path {
+        stroke: white;
+    }
+}
+
+
+.admin-menu-items {
+    background: white;
+    border-radius: 4px;
+    padding: 16px 16px !important;
+}
+
+.admin-menu-items:hover {
+    box-shadow: 0px 1px 16px 0px #0053a51c;
+}
+
+.admin-menu-sub-header {
+    color: #0053A5;
+    background: #F1F8FF;
+    border: 1px dashed #E6F3FF;
+    border-radius: 4px;
+    margin-left: 0px !important;
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    height: 27px;
+    width: fit-content;
+    padding: 0px 12px;
+}

@@ -1,0 +1,56 @@
+.admin-Layout {
+  padding: 20px;
+  padding-top: 70px;
+  padding-bottom: 0px;
+}
+
+// height: calc(100vh - 125px);
+// overflow-x: hidden;
+
+.candidates-addForm {
+  height: calc(100vh - 125px);
+  overflow-x: hidden;
+}
+
+.add-user-Form {
+  width: 80%;
+  padding: 24px 0px 0px 24px;
+  margin-bottom: 100px;
+}
+
+.anticon svg {
+  display: inline-block;
+  height: 15px;
+  object-fit: contain;
+}
+
+.photo-upload-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.ant-upload.ant-upload-drag {
+    height: 47px !important;
+}
+.photo-upload-box {
+  flex: 1;
+}
+
+.photo-preview-box {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}

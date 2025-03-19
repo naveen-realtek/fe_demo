@@ -1,0 +1,103 @@
+.organization-limit {
+    display: flex;
+    gap: 40px;
+    height: 60px;
+    align-self: center;
+    background: white;
+    border: 1px solid #DDDCEC;
+    border-radius: 6px;
+    align-items: center;
+    padding: 20px 24px;
+    line-height: 60px;
+
+}
+
+.userlimit-collapse-table .ant-table {
+    height: auto;
+}
+
+.ant-collapse>.ant-collapse-item>.ant-collapse-header {
+    position: relative;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding: 12px 16px;
+    color: rgba(0, 0, 0, 0.85);
+    border: 1px solid #DDDCEC;
+    border-radius: 6px;
+    height: 60px;
+    background: white;
+}
+
+.ant-collapse {
+    background: none !important;
+}
+
+.ant-dropdown-menu.userlimitcollapsemenu {
+    padding: 8px 8px !important;
+    border-radius: 8px !important;
+    box-shadow: 0px 0px 5px 2px rgb(0 0 0 / 13%) !important;
+    width: 180px !important;
+}
+
+.ant-collapse-content {
+    border-top: none;
+}
+
+.ant-collapse-content>.ant-collapse-content-box {
+    padding: 15px 0px;
+}
+
+.userlimit-ZinEditIcon {
+    visibility: hidden;
+}
+
+.new-collapse:hover .userlimit-ZinEditIcon {
+    visibility: visible;
+    align-self: center;
+}
+
+.limit-hs-input {
+    input {
+        max-width: 60px;
+    }
+
+    .limit-input {
+        color: #27183A;
+        background: none;
+        border: 1px solid transparent;
+        box-shadow: none;
+        width: 60px;
+        cursor: default;
+        opacity: 1;
+    }
+
+    .ant-select {
+        width: 76px;
+    }
+
+    .ant-select-selector {
+        border: 1px solid transparent;
+    }
+
+    .ant-select-selector {
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+}
+
+
+
+
+// }
+
+.new-collapse {
+    position: absolute;
+    z-index: 9;
+    width: -webkit-fill-available;
+    margin-left: 50px;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+}

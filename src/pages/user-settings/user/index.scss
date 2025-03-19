@@ -1,0 +1,165 @@
+.user-image img {
+    width: 30px;
+    border-radius: 50%;
+    background-size: cover;
+    height: 30px;
+    border: 1px solid transparent;
+}
+
+.user-table .statuscolumn-sticky {
+    right: 200px !important;
+}
+
+.openUserDrawer:hover {
+    text-decoration: underline;
+}
+
+.user-settings-users .ant-drawer-content-wrapper {
+    width: 500px !important;
+
+}
+
+.user-settings-users .ant-drawer-header {
+    background: none !important;
+    color: #27183a;
+    height: auto;
+    border: none;
+    padding: 0px;
+}
+
+button.ant-drawer-close {
+    position: absolute;
+    left: -40px;
+    margin-top: 32px;
+    background: #0053A5;
+    width: 36px;
+    height: 36px;
+    color: white;
+    border-radius: 20px;
+    display: grid;
+    align-items: center;
+}
+
+.zin-user-face {
+    border-radius: 50%;
+}
+
+.user-details {
+    margin-top: 41px;
+    margin-bottom: 18px;
+}
+
+.user-created-on {
+    color: #25324B;
+}
+
+.user-border {
+    height: 1px;
+    background: #DDDDF8;
+    margin: 26px 0px;
+}
+
+.ant-switch-checked .ant-switch-inner {
+    margin: 0 25px 0 7px;
+    position: absolute;
+    margin-left: 50px;
+    color: #060606;
+    margin-top: -11px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ant-switch-inner {
+    display: block;
+    margin: 0 7px 0 25px;
+    color: #fff;
+    font-size: 12px;
+    transition: margin 0.2s;
+    position: absolute;
+    margin-left: 50px;
+    color: #060606;
+    font-size: 14px;
+    margin-top: -11px;
+    font-weight: 500;
+
+}
+
+.useredit-userrole .ant-select-selector {
+    height: 46px !important;
+}
+
+.useredit-userrole .ant-select-selection-search-input {
+    height: 46px !important;
+}
+
+.user-view-addSelect{
+    border-top: 1px solid #DDDDF8;
+    margin: 0px 10px;
+    display: grid;
+    height: 44px;
+}
+
+.tagify__tag__removeBtn {
+    order: 5;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50px;
+    cursor: pointer;
+    color: white !important;
+    width: 14px;
+    height: 14px;
+    font-size: 20px !important;
+    margin-right: 4.6666666667px;
+    margin-left: auto;
+    overflow: hidden;
+    transition: 0.2s ease-out;
+}
+
+.tagify__tag {
+    display: inline-flex;
+    align-items: center;
+    margin: 5px 0 5px 5px;
+    position: relative;
+    z-index: 1;
+    outline: 0;
+    line-height: normal;
+    cursor: default;
+    transition: 0.13s ease-out;
+    background: #0053A5!important;
+    color: white !important;
+    border-radius: 4px;
+}
+
+.tagify__tag > div > * {
+    white-space: pre-wrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: top;
+    transition: 0.8s ease, 0.1s color;
+    color: white;
+    font-size: 16px;
+}
+.tagify__tag > div::before {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    inset: var(--tag-bg-inset, 0);
+    z-index: -1;
+    pointer-events: none;
+    transition: 120ms ease;
+    animation: tags--bump 0.3s ease-out 1;
+    box-shadow: none !important;
+}
+.tagify {
+    padding: 4px !important;
+    border: 1px solid #A7A7A7 !important;
+}
+.tagify__input{
+    font-size: 16px;
+}
+.tagify__tag__removeBtn:hover + div::before {
+    box-shadow: none !important;
+    transition: box-shadow 0.2s;
+}

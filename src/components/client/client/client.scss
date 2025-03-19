@@ -1,0 +1,182 @@
+.admin-main-header {
+    padding: 15px;
+    box-shadow: 0px 4px 5px rgba(146, 146, 146, 0.16);
+    margin-bottom: 12px;
+    height: 56px;
+    position: sticky;
+    z-index: 99;
+  }
+  
+  .user-table {
+    .ant-table-thead > tr > th,
+    .ant-table-tbody > tr > td,
+    .ant-table tfoot > tr > th,
+    .ant-table tfoot > tr > td {
+      position: relative;
+      padding: 7px 25px;
+      overflow-wrap: break-word;
+    }
+  
+    .ant-table-tbody > tr > td,
+    .ant-table tfoot > tr > th,
+    .ant-table tfoot > tr > td {
+      position: relative;
+      padding: 7px 25px;
+      overflow-wrap: break-word;
+    }
+  
+    .ant-pagination {
+      position: fixed;
+      bottom: 0;
+      transition: 0.4s;
+      right: 10px;
+    }
+  }
+  
+  .userswitch {
+    position: sticky !important;
+    right: 120px !important;
+  }
+  
+  .ActionButton-user {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .actioncolumn-sticky {
+    text-align: center !important;
+  }
+  
+  .user-buttons-top {
+    justify-content: end;
+    margin-bottom: 10px;
+  }
+  
+  .search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    .search-slide {
+      display: flex;
+      align-items: center;
+      animation: slideIn 0.3s ease-in-out;
+  
+      input {
+        margin-left: 8px;
+      }
+    }
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  .searchIconUser {
+    border: none !important;
+
+
+  
+  }
+  
+  .breadcrumbsLink {
+    cursor: pointer !important;
+  }
+  
+  .user-avatar {
+    margin-right: 10px;
+    border: 2px solid #fff;
+  }
+  .user-name {
+    font-weight: 500;
+  }
+  
+  .Name-column-user {
+    cursor: pointer !important;
+  }
+  
+  .Firstname-select {
+    width: 20%;
+  }
+  
+  .country-code-select {
+    width: 30%;
+    border-right: 1px solid #ddddf8;
+  }
+  
+  //---------------Pagination------------------//
+  
+  .pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+  }
+  
+  .pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .pagination-controls {
+    display: flex;
+    gap: 5px;
+  }
+  
+  .pagination-jump {
+    display: flex;
+    align-items: center;
+  }
+  
+  .ant-tag-selected {
+    background-color: #0053a5 !important;
+    color: white !important;
+    border-radius: 4px;
+  }
+
+  .search-toolset {
+
+    display: flex;
+    align-items: center;
+
+    background-color: #fff; /* optional */
+    border-radius: 8px; /* optional */
+  }
+  
+
+
+
+  .search-error {
+ 
+    color: red;
+    font-size: 12px;
+  }
+
+  .suffix-wrapper {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+  
+  .ant-input-affix-wrapper .ant-input-suffix {
+    margin: 0;
+    padding: 0;
+  }
+  
+  .ZinClear {
+    margin: 0;
+    padding: 0;
+  }
+  

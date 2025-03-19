@@ -1,0 +1,863 @@
+import React, { useEffect, useState, useRef } from "react";
+import { useNavigate, useParams, Link, useLocation } from "react-router-dom";
+import {
+  Breadcrumb,
+  Button,
+  Form,
+  Input,
+  Select,
+  message,
+  Switch,
+  Modal,
+  Upload,
+} from "antd";
+import {
+  EyeOutlined,
+  EyeInvisibleOutlined,
+  PlusOutlined,
+  DeleteOutlined,
+} from "@ant-design/icons";
+import { authorizationService } from "../../../service";
+import { ZinAddButton, ZinRightArrow, ZinWhiteClose } from "../../images";
+import "./index.scss";
+import { OverlayMenuDropdown } from "../../../shared-components/overlay-menu/overlay-menu";
+
+export default function UserSettingAdd() {
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isActive, setIsActive] = useState(1);
+  const [reportingUserData, setReportingUserData] = useState([]);
+  const [isAssignToDisabled, setIsAssignToDisabled] = useState(true);
+  const [roleListData, setroleListData] = useState([]);
+  const [userDetails, setUserDetails] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [file, setFile] = useState(null);
+  const [filePreview, setFilePreview] = useState("");
+  const [fileName, setFileName] = useState("");
+  const fileInputRef = useRef(null);
+  const [openModal, setOpenModal] = useState(false);
+  const [newRole, setNewRole] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [openTeamModal, setOpenTeamModal] = useState(false);
+  const [newTeam, setNewTeam] = useState("");
+  const location = useLocation();
+  const [countryCodes, setCountryCodes] = useState([]);
+
+  const queryParams = new URLSearchParams(location.search);
+  const userId = new URLSearchParams(location.search).get("userId");
+
+  const roleId = [
+    {
+      value: 1,
+      key: 1,
+      role_Id: "Recruiter",
+    },
+    {
+      value: 2,
+      key: 2,
+      role_Id: "Lead Recruiter",
+    },
+    {
+      value: 3,
+      key: 3,
+      role_Id: "Manager",
+    },
+    {
+      value: 5,
+      key: 4,
+      role_Id: "Admin",
+    },
+  ];
+
+  const [teamListData, setTeamListData] = useState([
+    { value: "1", label: "Team 1" },
+    { value: "2", label: "Team 2" },
+    { value: "3", label: "Team 3" },
+    { value: "4", label: "Team 4" },
+  ]);
+
+  useEffect(() => {
+    getCountryCode();
+    getUserRoles();
+
+    if (userId) {
+      fetchUserDetails(userId);
+    }
+  }, [userId]);
+
+  const getCountryCode = async () => {
+    try {
+      const response = await authorizationService.getCountrycode();
+      if (response && response.data) {
+        setCountryCodes(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching country codes:", error);
+    }
+  };
+
+  const [userID, setUserID] = useState(null);
+  const fetchUserDetails = async (userId) => {
+    try {
+      const response = await authorizationService.getUserDetailedView(userId);
+      console.log("API Response:", response);
+      setUserID(response.data.userId);
+
+      if (response.status) {
+        setIsEditMode(true);
+        setUserData(response.data);
+
+        form.setFieldsValue({
+          location: response.data.location,
+          first_name: response.data.firstName,
+          last_name: response.data.lastName,
+          user_name: response.data.userName,
+          email: response.data.email,
+          role_id: response.data.roleId,
+          team_id: response.data.teamId,
+          reporting_id: response.data.reportingId,
+          phone_extension: response.data.phoneExtension,
+          mobile_number: response.data.phoneNumber,
+          status: response.data.status === 1 ? 1 : 0, // Ensure status is 1 or 0
+        });
+
+        setIsActive(response.data.status === 1 ? 1 : 0);
+      } else {
+        console.error("Unexpected API response format:", response);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const onChange = async (value) => {
+    await userDataApi(value);
+    setIsAssignToDisabled(false);
+  };
+
+  const userDataApi = async (id) => {
+    try {
+      console.log("Fetching users for role ID:", id); // Debugging
+      setReportingUserData([]); // Clear first
+
+      const userListResponse = await authorizationService.getUsers(id);
+      console.log("Fetched users:", userListResponse.data); // Debugging
+
+      setReportingUserData(userListResponse.data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const toggleStatus = (checked) => {
+    setIsActive(checked);
+  };
+
+  function setFormData(values) {
+    let addUserForm = {
+      first_name: values.first_name,
+      last_name: values.last_name,
+      user_name: values.user_name,
+      email: values.email,
+      status: values.status === 1 ? 1 : 0,
+      role_id: values.role_id,
+      location: values.location,
+      reporting_id: values.reporting_id,
+      mobile_number: values.mobile_number,
+      phone_extension: values.phone_extension,
+    };
+    return addUserForm;
+  }
+
+  const userOnFinish = async (values) => {
+    const data = setFormData(values);
+    console.log(data, "data");
+    // var userAddValue = {};
+
+    const formData = new FormData();
+    formData.append("json", JSON.stringify(data));
+    if (file) {
+      formData.append("photo", file);
+    }
+
+    setIsLoading(true);
+    try {
+      const response = isEditMode
+        ? await authorizationService.updateUser(userID, formData)
+        : await authorizationService.createUser(formData);
+
+      if (response?.status) {
+        message.success(
+          isEditMode ? "User updated successfully" : "User created successfully"
+        );
+        navigate("/app/admin/usersettings/add", {
+          state: { userDetails: userData },
+        });
+      } else {
+        message.error(response?.error || "Something went wrong");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      message.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getUserRoles = async (id) => {
+    const roleListResponse = await authorizationService.getRoleList(id);
+    setroleListData(roleListResponse.data);
+  };
+
+  const onFinishFailed = (errorInfo) => {
+    console.log("Failed:", errorInfo);
+  };
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState("12345");
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value); // Update password state
+  };
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleFileChange = async (event) => {
+    const selectedFile = event.target.files[0];
+
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+
+      // Read file as binary
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(selectedFile);
+      reader.onloadend = () => {
+        const binaryData = reader.result;
+        setFile(binaryData); // Store binary data in state
+      };
+    }
+  };
+
+  const handleInputClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleRemoveFile = () => {
+    setFile(null);
+    setFilePreview("");
+  };
+
+  const handleSubmit = async (values) => {
+    try {
+      if (isEditMode) {
+        await authorizationService.updateUser(userId, values);
+      } else {
+        await authorizationService.addUser(values);
+      }
+      navigate("/app/admin/usersettings/user");
+    } catch (error) {
+      console.error("Error saving user:", error);
+    }
+  };
+
+  const validateName = (_, value) => {
+    if (!value) return Promise.reject("Mandatory field");
+    if (value.length < 2)
+      return Promise.reject("Must be at least 2 characters");
+    if (!/^[A-Za-z\s]+$/.test(value))
+      return Promise.reject("Only letters and spaces are allowed");
+    return Promise.resolve();
+  };
+
+  const preventNumberInput = (e) => {
+    if (/\d/.test(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  const handleNameChange = (e, fieldName) => {
+    let value = e.target.value.replace(/[^A-Za-z\s]/g, "");
+    form.setFieldsValue({ [fieldName]: value });
+  };
+
+  const formatPhoneNumber = (e) => {
+    let value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    if (value.length > 10) value = value.slice(0, 10); // Limit to 10 digits
+
+    if (value.length > 6) {
+      value = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6)}`;
+    } else if (value.length > 3) {
+      value = `${value.slice(0, 3)}-${value.slice(3)}`;
+    }
+    form.setFieldsValue({ mobile_number: value }); // Update form field
+  };
+
+  const validatePhoneNumber = (_, value) => {
+    if (!value) return Promise.reject("Enter phone number");
+    if (!/^\d{3}-\d{3}-\d{4}$/.test(value))
+      return Promise.reject("Format: XXX-XXX-XXXX");
+    return Promise.resolve();
+  };
+
+  const validateUsername = async (_, value) => {
+    if (!value) return Promise.reject("Mandatory field");
+    if (value.length < 2)
+      return Promise.reject("Must be at least 2 characters");
+
+    // const response = await fetch(`/api/check-username?username=${value}`);
+    // const data = await response.json();
+    // if (!data.isUnique) return Promise.reject("Username already exists");
+
+    return Promise.resolve();
+  };
+
+  const handleAddRoleClick = () => {
+    setOpenModal(true);
+  };
+
+  const handleSaveRole = async () => {
+    if (!newRole.trim()) {
+      message.error("Role name cannot be empty");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post("/auth/create-role", {
+        role_name: newRole,
+      });
+      if (response.status === 201 || response.status === 202) {
+        const addedRole = response.data;
+        setRoleListData([...roleListData, addedRole]);
+        message.success("Role added successfully");
+        setNewRole("");
+        setOpenModal(false);
+      } else {
+        message.error("Failed to add role");
+      }
+    } catch (error) {
+      message.error("Error adding role");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddTeamClick = () => {
+    setOpenTeamModal(true);
+  };
+
+  // Save new team
+  const handleSaveTeam = async () => {
+    if (!newTeam.trim()) return;
+
+    setLoading(true);
+
+    try {
+      // Call API to save new team
+      const response = await axios.post("/teams/add", { team_name: newTeam });
+
+      if (response.status === 201 || response.status === 202) {
+        // Add the new team to the dropdown list
+        setTeamListData([
+          ...teamListData,
+          { value: response.data.team_id, label: newTeam },
+        ]);
+        setNewTeam("");
+        setOpenTeamModal(false);
+      }
+    } catch (error) {
+      console.error("Error adding team:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="admin-breadcrums">
+        <div className="admin-breadcrumbs">
+          <Breadcrumb separator={<ZinRightArrow />}>
+            <Breadcrumb.Item className="breadcrumbsLink">
+              <Link to="/app/dashboard">Home</Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item className="breadcrumbsLink">
+              <Link to="/app/admin">Admin</Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item className="breadcrumbsLink">
+              <Link to="/app/admin/usersettings/user">User settings</Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item className="breadcrumbsLink">
+              <Link to="/app/admin/usersettings/user">User</Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item className="breadcrumbsLink">
+              {isEditMode ? "Edit User" : "Add User"}
+            </Breadcrumb.Item>
+          </Breadcrumb>
+        </div>
+      </div>
+      <div className="admin-Layout">
+        <div className="bg-white candidates-addForm">
+          <Form
+            className="add-form"
+            autoCorrect="off"
+            autoCapitalize="off"
+            autoComplete="off"
+            layout="vertical"
+            onFinishFailed={onFinishFailed}
+            form={form}
+            onFinish={userOnFinish}
+          >
+            <div className="add-user-Form">
+              <div className="row">
+                <div className="col-lg-6">
+                  <Form.Item
+                    name="location"
+                    label="Location"
+                    rules={[{ required: true, message: "Required" }]}
+                  >
+                    <Input size="large" placeholder="Unit location" />
+                  </Form.Item>
+                </div>
+                <div className="col-lg-6">
+                  <Form.Item
+                    label="Status"
+                    name="status"
+                    valuePropName="checked"
+                    rules={[{ required: true, message: "Required" }]}
+                  >
+                    <div className="d-flex align-items-center gap-2">
+                      <Switch
+                        checked={isActive === 1}
+                        onChange={(checked) => {
+                          const newValue = checked ? 1 : 0;
+                          setIsActive(newValue);
+                          form.setFieldsValue({ status: newValue });
+                        }}
+                      />
+                      <span>{isActive === 1 ? "Active" : "Inactive"}</span>
+                    </div>
+                  </Form.Item>
+                </div>
+
+                <div className="col-lg-6">
+                  <Form.Item
+                    label="First name"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Mandatory field",
+                      },
+                      {
+                        min: 2,
+                        message: "First name must be at least 2 characters",
+                      },
+                      { validator: validateName },
+                    ]}
+                  >
+                    <Input.Group compact className="d-flex">
+                      <Form.Item
+                        name="name_title"
+                        noStyle
+                        rules={[{ required: true, message: "Select title" }]}
+                      >
+                        <Select
+                          size="large"
+                          className="Firstname-select"
+                          placeholder="Mr"
+                        >
+                          <Select.Option value="Mr">Mr</Select.Option>
+                          <Select.Option value="Mrs">Mrs</Select.Option>
+                          <Select.Option value="Ms">Ms</Select.Option>
+                          <Select.Option value="Dr">Dr</Select.Option>
+                        </Select>
+                      </Form.Item>
+                      <Form.Item
+                        name="first_name"
+                        noStyle
+                        rules={[
+                          { required: true, message: "Mandatory field" },
+                          {
+                            min: 2,
+                            message: "First name must be at least 2 characters",
+                          },
+                        ]}
+                      >
+                        <Input
+                          size="large"
+                          placeholder="Enter first name"
+                          style={{ width: "80%" }}
+                          onKeyPress={preventNumberInput}
+                          onChange={(e) => handleNameChange(e, "firstName")}
+                        />
+                      </Form.Item>
+                    </Input.Group>
+                  </Form.Item>
+                </div>
+                <div className="col-lg-6">
+                  <Form.Item
+                    name="last_name"
+                    label="Last name"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Mandatory field",
+                      },
+                      {
+                        min: 2,
+                        message: "Last name must be at least 2 characters",
+                      },
+                      { validator: validateName },
+                    ]}
+                  >
+                    <Input
+                      size="large"
+                      placeholder="Enter last name"
+                      onKeyPress={preventNumberInput}
+                      onChange={(e) => handleNameChange(e, "zinnext_last_name")}
+                    />
+                  </Form.Item>
+                </div>
+                <div className="col-lg-6">
+                  <Form.Item
+                    name="user_name"
+                    label="User name"
+                    rules={[
+                      {
+                        required: true,
+                        message: "Mandatory field",
+                      },
+                      {
+                        min: 2,
+                        message: "User name must be at least 2 characters",
+                      },
+                      { validator: validateUsername },
+                    ]}
+                  >
+                    <Input size="large" placeholder="Enter user name" />
+                  </Form.Item>
+                </div>
+                <div className="col-lg-6">
+                  <Form.Item
+                    label="Contact number"
+                    className="contact-number-label"
+                  >
+                    <Input.Group compact className="d-flex">
+                      <Form.Item
+                        name="phone_extension"
+                        noStyle
+                        rules={[
+                          { required: true, message: "Select country code" },
+                        ]}
+                      >
+                        <Select
+                          size="large"
+                          className="country-code-select"
+                          placeholder="Select"
+                        >
+                          {countryCodes.map((code) => (
+                            <Select.Option key={code.value} value={code.value}>
+                              {code.label}
+                            </Select.Option>
+                          ))}
+                        </Select>
+                      </Form.Item>
+                      <Form.Item
+                        name="mobile_number"
+                        noStyle
+                        rules={[
+                          { required: true, message: "Enter phone number" },
+                          { validator: validatePhoneNumber },
+                        ]}
+                      >
+                        <Input
+                          size="large"
+                          placeholder="Enter contact number"
+                          style={{ width: "80%", marginLeft: "5px" }}
+                          onChange={formatPhoneNumber}
+                        />
+                      </Form.Item>
+                    </Input.Group>
+                  </Form.Item>
+                </div>
+
+                <div className="col-lg-6">
+                  <Form.Item
+                    name="email"
+                    label="Email"
+                    rules={[
+                      {
+                        type: "email",
+                        message: "Enter valid email",
+                      },
+                      {
+                        required: true,
+                        message: "mandatory field",
+                      },
+                    ]}
+                  >
+                    <Input size="large" placeholder="Enter email" />
+                  </Form.Item>
+                </div>
+
+                <div className="col-lg-6">
+                  <Form.Item
+                    label="User role"
+                    name="role_id"
+                    rules={[{ required: true, message: "Mandatory field" }]}
+                  >
+                    <Select
+                      size="large"
+                      allowClear
+                      showSearch
+                      showArrow
+                      placeholder="Select role"
+                      filterOption={(input, option) =>
+                        option?.label && typeof option.label === "string"
+                          ? option.label
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          : false
+                      }
+                      onChange={onChange}
+                      dropdownRender={(menu) => (
+                        <div>
+                          {menu}
+                          <div
+                            style={{
+                              position: "sticky",
+                              bottom: 0,
+                              padding: "8px",
+                              textAlign: "center",
+                              borderTop: "1px solid #ddd",
+                            }}
+                          >
+                            <Button type="link" onClick={handleAddRoleClick}>
+                              + Add New Role
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    >
+                      {roleListData.map((option) => (
+                        <Select.Option
+                          key={option.role_id}
+                          label={option.role_name}
+                          value={option.role_id}
+                        >
+                          {option.role_name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                  <Modal
+                    open={openModal}
+                    title="Add New Role"
+                    centered
+                    onCancel={() => setOpenModal(false)}
+                    footer={null}
+                  >
+                    <Form layout="vertical">
+                      <Form.Item label="Role Name">
+                        <Input
+                          type="text"
+                          value={newRole}
+                          onChange={(e) => setNewRole(e.target.value)}
+                          size="large"
+                          placeholder="Enter role name"
+                        />
+                      </Form.Item>
+                      <div className="on-submitaddnewrole gap-2 margin-top-20">
+                        <Button
+                          type="default"
+                          onClick={() => setOpenModal(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="primary"
+                          loading={loading}
+                          onClick={handleSaveRole}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </Form>
+                  </Modal>
+                </div>
+                <div className="col-lg-6">
+                  <Form.Item label="Team" name="zinnext_team_id">
+                    <Select
+                      size="large"
+                      allowClear
+                      showSearch
+                      showArrow
+                      placeholder="Select team"
+                      filterOption={(input, option) =>
+                        option?.label && typeof option.label === "string"
+                          ? option.label
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          : false
+                      }
+                      onChange={onChange}
+                      dropdownRender={(menu) => (
+                        <div>
+                          {menu}
+                          <div
+                            style={{
+                              position: "sticky",
+                              bottom: 0,
+                              padding: "8px",
+                              textAlign: "center",
+                              borderTop: "1px solid #ddd",
+                            }}
+                          >
+                            <Button type="link" onClick={handleAddTeamClick}>
+                              + Add New Team
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    >
+                      {teamListData.map((team) => (
+                        <Select.Option key={team.value} value={team.value}>
+                          {team.label}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+
+                  {/* Modal for Adding New Team */}
+                  <Modal
+                    open={openTeamModal}
+                    title="Add New Team"
+                    centered
+                    onCancel={() => setOpenTeamModal(false)}
+                    footer={null}
+                  >
+                    <Form layout="vertical">
+                      <Form.Item label="Team Name">
+                        <Input
+                          type="text"
+                          value={newTeam}
+                          onChange={(e) => setNewTeam(e.target.value)}
+                          size="large"
+                          placeholder="Enter team name"
+                        />
+                      </Form.Item>
+                      <div className="on-submitaddnewrole gap-2 margin-top-20">
+                        <Button
+                          type="default"
+                          onClick={() => setOpenTeamModal(false)}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          type="primary"
+                          loading={loading}
+                          onClick={handleSaveTeam}
+                        >
+                          Save
+                        </Button>
+                      </div>
+                    </Form>
+                  </Modal>
+                </div>
+
+                <div className="col-lg-6">
+                  <Form.Item label="Reporting person" name="reporting_id">
+                    <Select
+                      size="large"
+                      allowClear
+                      placeholder="Select reporting person"
+                      filterOption={(input, opt) =>
+                        (opt?.label ?? "")
+                          .toLowerCase()
+                          .includes(input.toLowerCase())
+                      }
+                      disabled={isAssignToDisabled}
+                    >
+                      {reportingUserData &&
+                        reportingUserData.map((opt) => (
+                          <Select.Option
+                            key={opt.userId}
+                            label={
+                              opt.firstName +
+                              " " +
+                              opt.lastName +
+                              " - " +
+                              opt.roleName
+                            }
+                            value={opt.userId}
+                          >
+                            {opt.firstName +
+                              " " +
+                              opt.lastName +
+                              " - " +
+                              opt.roleName}
+                          </Select.Option>
+                        ))}
+                    </Select>
+                  </Form.Item>
+                </div>
+
+                <div className="col-lg-6">
+                  <Form.Item label="Photo" name="photo">
+                    <div className="custom-upload-wrapper">
+                      <Upload.Dragger
+                        beforeUpload={(file) => {
+                          setFile(file);
+                          setFileName(file.name);
+                          return false; // Prevent automatic upload
+                        }}
+                        showUploadList={false}
+                        accept="image/*"
+                        disabled={!!file} // Disable when file is selected
+                        className="custom-dragger"
+                      >
+                        <p className="upload-text">
+                          <PlusOutlined /> Click or drag file to upload
+                        </p>
+                      </Upload.Dragger>
+                      {file && (
+                        <div className="upload-preview">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt="Profile Preview"
+                            className="preview-image"
+                          />
+                          <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={handleRemoveFile}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </Form.Item>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white add-form-footer d-flex align-items-center justify-content-end gap-3">
+              <Button type="secondary" size="small">
+                <Link to="/app/admin/usersettings/user">Cancel</Link>
+              </Button>
+              <Button
+                disabled={isLoading}
+                loading={isLoading}
+                type="primary"
+                size="small"
+                htmlType="submit"
+              >
+                <span>{isEditMode ? "Update" : "Save"}</span>
+              </Button>
+            </div>
+          </Form>
+        </div>
+      </div>
+    </>
+  );
+}
