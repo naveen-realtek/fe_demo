@@ -68,6 +68,9 @@ node {
     } catch (Exception e) {
         echo "Pipeline execution failed! Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
+    } finally {
+        if (currentBuild.result == 'FAILURE') {
+            echo "Pipeline execution failed!"
+        }
     }
 }
-
