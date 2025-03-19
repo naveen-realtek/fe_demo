@@ -1,15 +1,39 @@
-name: Trigger Jenkins on Main Update
+name: Auto Merge & Trigger Jenkins
 
 on:
   push:
     branches:
-      - main
+      - dev
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Merge dev into main
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git checkout main
+          git merge --no-ff dev -m "Auto-merging dev into main"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   trigger-jenkins:
+    needs: merge
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Jenkins Job
         run: |
           curl -X POST "http://192.168.1.65:8080/job/YourJenkinsJobName/buildWithParameters" \
                --user "jenkins_user:jenkins_api_token"
+
