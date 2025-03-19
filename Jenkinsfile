@@ -9,7 +9,7 @@ node {
 
     try {
         stage('Clone Repository') {
-            git branch: 'dev', credentialsId: 'new-git-id', url: 'https://github.com/Zinnext/Fe_-Admin_DevOps.git'
+            git branch: 'main', credentialsId: 'new-git-id', url: 'https://github.com/Zinnext/Fe_-Admin_DevOps.git'
         }
 
         stage('SonarQube Analysis') {
@@ -44,43 +44,30 @@ node {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build & Push Docker Image') {
             sh "docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} ."
-        }
 
-        stage('Push to Nexus') {
             withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                script {
-                    sh 'echo "$NEXUS_PASS" | docker login -u "$NEXUS_USER" --password-stdin ' + NEXUS_REPO_URL
-                    sh "docker tag ${IMAGE_NAME}:${IMAGE_VERSION} ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
-                    sh "docker push ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
-                }
-            }
-        }
-
-        stage('Pull & Remove Old Image') {
-            script {
-                sh "docker pull ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
-                def previousImage = sh(script: '''
-                    docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | \
-                    grep '${NEXUS_REPO_URL}/${IMAGE_NAME}' | sort | tail -n 2 | head -n 1 | awk '{print $1}'
-                ''', returnStdout: true).trim()
-
-                if (previousImage) {
-                    sh """
-                    docker stop ${CONTAINER_NAME} || true
-                    docker rm ${CONTAINER_NAME} || true
-                    docker rmi -f ${previousImage} || true
-                    """
-                }
+                sh 'echo "$NEXUS_PASS" | docker login -u "$NEXUS_USER" --password-stdin ' + NEXUS_REPO_URL
+                sh "docker tag ${IMAGE_NAME}:${IMAGE_VERSION} ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
+                sh "docker push ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
             }
         }
 
         stage('Deploy New Container') {
-            sh "docker run -d --name ${CONTAINER_NAME} -p 4001:4001 ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}"
+            script {
+                sh """
+                docker pull ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}
+                docker stop ${CONTAINER_NAME} || true
+                docker rm ${CONTAINER_NAME} || true
+                docker rmi $(docker images -q ${IMAGE_NAME}) || true
+                docker run -d --name ${CONTAINER_NAME} -p 4001:4001 ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}
+                """
+            }
         }
     } catch (Exception e) {
         echo "Pipeline execution failed! Error: ${e.getMessage()}"
         currentBuild.result = 'FAILURE'
     }
 }
+
