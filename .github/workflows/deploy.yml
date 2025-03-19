@@ -1,0 +1,15 @@
+name: Trigger Jenkins on Main Update
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  trigger-jenkins:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Jenkins Job
+        run: |
+          curl -X POST "http://192.168.1.65:8080/job/YourJenkinsJobName/buildWithParameters" \
+               --user "jenkins_user:jenkins_api_token"
