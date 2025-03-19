@@ -3,7 +3,7 @@ name: Auto Merge & Trigger Jenkins
 on:
   push:
     branches:
-      - dev  # Run this workflow when changes are pushed to dev
+      - dev
 
 permissions:
   contents: write
@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Get full commit history
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
@@ -40,3 +40,4 @@ jobs:
         run: |
           curl -X POST "http://192.168.1.65:8080/job/github_actions/buildWithParameters" \
                --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}"
+
