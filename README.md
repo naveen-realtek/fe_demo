@@ -1,4 +1,4 @@
-# rltk-admiNN
+# rltk-admiN
 
 ## Environment file
 
