@@ -27,30 +27,27 @@ node {
         }
 
        stage('Get Latest Image Version') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                    script {
-                        def latestTag = sh(
-                            script: """
-                                curl -s -u "$NEXUS_USER:$NEXUS_PASS" http://${NEXUS_REPO_URL}/v2/${IMAGE_NAME}/tags/list | 
-                                jq -r '.tags | if type == "array" and length > 0 then sort | last else empty end'
-                            """,
-                            returnStdout: true
-                        ).trim()
+    withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+        script {
+            def latestTag = sh(
+                script: """
+                    curl -s -u "$NEXUS_USER:$NEXUS_PASS" http://${NEXUS_REPO_URL}/v2/${IMAGE_NAME}/tags/list | 
+                    jq -r '.tags | if type == "array" and length > 0 then sort | last else empty end'
+                """,
+                returnStdout: true
+            ).trim()
 
-                        if (latestTag && latestTag.startsWith("v")) {
-                            def parts = latestTag.tokenize('.')
-                            env.IMAGE_VERSION = "v0." + (parts[1].toInteger() + 1)
-                        }
-
-                        echo "New image version: ${env.IMAGE_VERSION}"
-                    }
-                }
+            if (latestTag && latestTag.startsWith("v")) {
+                def parts = latestTag.tokenize('.')
+                env.IMAGE_VERSION = "v0." + (parts[1].toInteger() + 1)
+            } else {
+                env.IMAGE_VERSION = "v0.1" // Default version if no previous tag found
             }
+
+            echo "New image version: ${env.IMAGE_VERSION}"
         }
-
-
-
+    }
+}
         stage('Build & Push Docker Image') {
             withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
                 sh """
