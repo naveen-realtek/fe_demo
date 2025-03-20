@@ -73,6 +73,6 @@ jobs:
       - name: Merge dev into main (force merge)
         run: |
           git merge dev --no-edit --strategy-option=theirs || true
-          git push origin main  # Force push to main
+          git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Use PAT for pushing
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Use PAT instead of GITHUB_TOKEN
