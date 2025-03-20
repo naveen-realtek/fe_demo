@@ -3,37 +3,15 @@ name: Auto Merge & Trigger Jenkins
 on:
   push:
     branches:
-      - dev  # Run this workflow when changes are pushed to dev
+      - main  # Run this workflow when changes are pushed to main
 
 permissions:
   contents: write
   pull-requests: write
+  actions: write  # ✅ Allows modifying workflow files
 
 jobs:
-  merge:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0  # Get full commit history
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
-
-      - name: Merge dev into main
-        run: |
-          git checkout main
-          git pull origin main
-          git merge --no-ff dev -m "Auto-merging dev into main"
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   trigger-jenkins:
-    needs: merge
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Jenkins Job
