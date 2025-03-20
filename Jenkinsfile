@@ -49,11 +49,12 @@ node {
     }
 
     stage('Deploy New Container') {
+    steps {
         sh """
         docker pull ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}
         docker stop "$CONTAINER_NAME" || true
         docker rm "$CONTAINER_NAME" || true
-        docker rmi $(docker images -q ${IMAGE_NAME}) || true
+        docker rmi \$(docker images -q "$IMAGE_NAME") || true
         docker run -d --name "$CONTAINER_NAME" -p 4001:4001 ${NEXUS_REPO_URL}/${IMAGE_NAME}:${IMAGE_VERSION}
         """
     }
