@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write  # ✅ Allows modifying workflow files
 
 jobs:
   merge:
@@ -16,34 +17,29 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history
+          fetch-depth: 0  # Fetch full history to enable merging
 
       - name: Configure Git
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
 
-      - name: Fetch latest changes
-        run: |
-          git fetch --all
+      - name: Checkout main branch
+        run: git checkout main
 
-      - name: Merge dev into main
+      - name: Merge dev into main (Resolve conflicts with dev’s changes)
         run: |
-          git checkout main
-          git pull origin main
-          git merge --no-ff dev -m "Auto-merging dev into main" || true
+          git merge dev --strategy-option theirs || true
+          git commit -am "Auto-merging dev into main - resolved conflicts with dev's changes" || true
 
-      - name: Resolve conflicts (if any)
-        run: |
-          git diff --name-only --diff-filter=U | while read file; do
-            echo "Resolving conflict in $file..."
-            git checkout --theirs "$file"
-            git add "$file"
-          done
-          git commit -m "Resolved merge conflicts" || echo "No conflicts to resolve"
-
-      - name: Push changes
+      - name: Push changes using GITHUB_TOKEN (for workflow files)
         run: |
           git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use a Personal Access Token (PAT)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push changes using PERSION_G_TOKEN (for normal files)
+        run: |
+          git push origin main || git push origin main --force
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
