@@ -23,11 +23,26 @@ jobs:
           git config --global user.name "naveen-realtek"
           git config --global user.email "naveen.t@realtekconsulting.net"
 
+      - name: Fetch latest changes
+        run: |
+          git fetch --all
+
       - name: Merge dev into main
         run: |
           git checkout main
           git pull origin main
-          git merge --no-ff dev -m "Auto-merging dev into main"
-          git push origin main
+          git merge --no-ff dev -m "Auto-merging dev into main" || true
+
+      - name: Resolve conflicts (if any)
+        run: |
+          git diff --name-only --diff-filter=U | while read file; do
+            echo "Resolving conflict in $file..."
+            git checkout --theirs "$file"
+            git add "$file"
+          done
+          git commit -m "Resolved merge conflicts" || echo "No conflicts to resolve"
+
+      - name: Push changes
+        run: git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
