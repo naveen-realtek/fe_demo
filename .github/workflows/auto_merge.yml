@@ -17,7 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history to enable merging
+          fetch-depth: 0  # Fetch full history for merging
 
       - name: Configure Git
         run: |
@@ -27,19 +27,13 @@ jobs:
       - name: Checkout main branch
         run: git checkout main
 
-      - name: Merge dev into main (Resolve conflicts with dev’s changes)
+      - name: Merge dev into main (resolve conflicts in favor of dev)
         run: |
           git merge dev --strategy-option theirs || true
           git commit -am "Auto-merging dev into main - resolved conflicts with dev's changes" || true
 
-      - name: Push changes using GITHUB_TOKEN (for workflow files)
-        run: |
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Push changes using PERSION_G_TOKEN (for normal files)
+      - name: Push changes using PERSION_G_TOKEN
         run: |
           git push origin main || git push origin main --force
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSION_G_TOKEN }}
