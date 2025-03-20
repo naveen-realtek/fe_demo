@@ -2,8 +2,8 @@ node {
     environment {
         SONARQUBE_SERVER = 'sonarqube'
         NEXUS_REPO_URL = '192.168.1.65:8082'
-        IMAGE_NAME = 'docker-repo/fe_admin'
-        CONTAINER_NAME = "fe_admin_container"
+        IMAGE_NAME = 'docker-repo/fe_demo'
+        CONTAINER_NAME = "fe_demo_container"
     }
 
     try {
@@ -16,8 +16,8 @@ node {
                 withCredentials([string(credentialsId: 'sonar_id', variable: 'SONAR_TOKEN')]) {
                     sh '''
                     /opt/sonar-scanner/bin/sonar-scanner \
-                    -Dsonar.projectKey=fe_admin \
-                    -Dsonar.projectName="Fe_Admin" \
+                    -Dsonar.projectKey=fe_demo \
+                    -Dsonar.projectName="Fe_Demo" \
                     -Dsonar.sources=src \
                     -Dsonar.host.url=http://192.168.1.65:9000 \
                     -Dsonar.login=$SONAR_TOKEN
@@ -27,14 +27,16 @@ node {
         }
 
         stage('Get Latest Image Version') {
-            script {
-                def latestTag = sh(script: """
-                    curl -s -u "$NEXUS_USER:$NEXUS_PASS" http://${NEXUS_REPO_URL}/v2/${IMAGE_NAME}/tags/list | \
-                    jq -r '.tags | if type == "array" and length > 0 then sort | last else empty end'
-                """, returnStdout: true).trim()
+            withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+                script {
+                    def latestTag = sh(script: """
+                        curl -s -u "$NEXUS_USER:$NEXUS_PASS" http://${NEXUS_REPO_URL}/v2/${IMAGE_NAME}/tags/list | \
+                        jq -r '.tags | if type == "array" and length > 0 then sort | last else empty end'
+                    """, returnStdout: true).trim()
 
-                env.IMAGE_VERSION = latestTag ? "v0." + (latestTag.tokenize('.')[1].toInteger() + 1) : "v0.1"
-                echo "New image version: ${env.IMAGE_VERSION}"
+                    env.IMAGE_VERSION = latestTag ? "v0." + (latestTag.tokenize('.')[1].toInteger() + 1) : "v0.1"
+                    echo "New image version: ${env.IMAGE_VERSION}"
+                }
             }
         }
 
