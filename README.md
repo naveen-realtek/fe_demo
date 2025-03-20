@@ -1,4 +1,4 @@
-# rltk-Admin Devopssssssssssss
+# rltk-Admin Devops
 
 ## Environment file
 
