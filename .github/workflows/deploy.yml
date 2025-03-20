@@ -25,9 +25,6 @@ jobs:
   trigger-jenkins:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Trigger Jenkins Job
         run: |
           curl -X POST "http://192.168.1.65:8080/job/github_actions/buildWithParameters" \
