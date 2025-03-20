@@ -77,48 +77,7 @@
 #         env:
 #           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Use PAT instead of GITHUB_TOKEN
 
-# name: Auto Merge Dev to Main
-
-# on:
-#   push:
-#     branches:
-#       - dev
-
-# permissions:
-#   contents: write
-#   pull-requests: write
-#   actions: write  # Required for modifying workflows
-
-# jobs:
-#   merge:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout repository
-#         uses: actions/checkout@v3
-#         with:
-#           fetch-depth: 0  # Fetch full history for merging
-
-#       - name: Configure Git
-#         run: |
-#           git config --global user.name "github-actions"
-#           git config --global user.email "actions@github.com"
-
-#       - name: Checkout main branch
-#         run: |
-#           git checkout main
-#           git pull origin main  # Ensure the latest version
-
-#       - name: Merge dev into main (resolve conflicts in favor of dev)
-#         run: |
-#           git merge dev --strategy-option=theirs || true
-#           git commit -am "Auto-merging dev into main - resolved conflicts with dev's changes" || true
-
-#       - name: Push merged changes
-#         run: git push origin main
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Use a PAT token
-
-name: Auto Merge Dev to Main and Trigger Jenkins
+name: Auto Merge Dev to Main
 
 on:
   push:
@@ -128,16 +87,16 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: write
+  actions: write  # Required for modifying workflows
 
 jobs:
-  merge-and-trigger:
+  merge:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history for proper merging
+          fetch-depth: 0  # Fetch full history for merging
 
       - name: Configure Git
         run: |
@@ -147,25 +106,15 @@ jobs:
       - name: Checkout main branch
         run: |
           git checkout main
-          git pull origin main  # Ensure latest version
+          git pull origin main  # Ensure the latest version
 
       - name: Merge dev into main (resolve conflicts in favor of dev)
         run: |
-          git merge dev --no-edit --strategy-option=theirs || true
-          git commit --allow-empty -m "Auto-merging dev into main - resolved conflicts with dev's changes"
+          git merge dev --strategy-option=theirs || true
+          git commit -am "Auto-merging dev into main - resolved conflicts with dev's changes" || true
 
-      - name: Push merged changes to main
-        run: |
-          git push origin main
+      - name: Push merged changes
+        run: git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-  trigger-jenkins:
-    needs: merge-and-trigger
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Jenkins Job
-        run: |
-          curl -X POST "http://192.168.1.65:8080/job/github_actions/buildWithParameters" \
-               --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}"
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Use a PAT token
 
