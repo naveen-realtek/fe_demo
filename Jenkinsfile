@@ -26,19 +26,21 @@ node {
             }
         }
 
-        stage('Get Latest Image Version') {
-            withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
-                script {
-                    def latestTag = sh(script: """
-                        curl -s -u "$NEXUS_USER:$NEXUS_PASS" http://${NEXUS_REPO_URL}/v2/${IMAGE_NAME}/tags/list | \
-                        jq -r '.tags | if type == "array" and length > 0 then sort | last else empty end'
-                    """, returnStdout: true).trim()
+       stage('Get Latest Image Version') {
+    withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
+        script {
+            def nexusRepoUrl = '192.168.1.65:8081'  // Define it inside script block
+            def latestTag = sh(script: """
+                curl -s -u "$NEXUS_USER:$NEXUS_PASS" http://${nexusRepoUrl}/v2/${IMAGE_NAME}/tags/list | \
+                jq -r '.tags | if type == "array" and length > 0 then sort | last else empty end'
+            """, returnStdout: true).trim()
 
-                    env.IMAGE_VERSION = latestTag ? "v0." + (latestTag.tokenize('.')[1].toInteger() + 1) : "v0.1"
-                    echo "New image version: ${env.IMAGE_VERSION}"
-                }
-            }
+            env.IMAGE_VERSION = latestTag ? "v0." + (latestTag.tokenize('.')[1].toInteger() + 1) : "v0.1"
+            echo "New image version: ${env.IMAGE_VERSION}"
         }
+    }
+}
+
 
         stage('Build & Push Docker Image') {
             withCredentials([usernamePassword(credentialsId: 'nexus_docker_id', usernameVariable: 'NEXUS_USER', passwordVariable: 'NEXUS_PASS')]) {
