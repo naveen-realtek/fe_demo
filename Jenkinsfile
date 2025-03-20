@@ -8,7 +8,7 @@ node {
 
     try {
         stage('Clone Repository') {
-            git branch: 'main', credentialsId: 'new-git-id', url: 'https://github.com/Zinnext/Fe_-Admin_DevOps.git'
+            git branch: 'main', credentialsId: 'new-git-id', url: 'https://github.com/naveen-realtek/fe_demo.git'
         }
 
         stage('SonarQube Analysis') {
