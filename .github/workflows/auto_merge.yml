@@ -8,7 +8,8 @@ on:
 permissions:
   contents: write
   pull-requests: write
-  actions: write  # ✅ Allows modifying workflow files
+  actions: write
+  workflows: write  # ✅ Allows modifying workflow files
 
 jobs:
   merge:
@@ -17,7 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history to enable merging
+          fetch-depth: 0  # Fetch full history for proper merging
 
       - name: Configure Git
         run: |
@@ -29,20 +30,13 @@ jobs:
 
       - name: Merge dev into main (Resolve conflicts with dev’s changes)
         run: |
-          git merge dev --strategy-option theirs || true
-          git commit -am "Auto-merging dev into main - resolved conflicts with dev's changes" || true
+          git merge dev --strategy-option=theirs --allow-unrelated-histories
+          git commit -am "Auto-merging dev into main - resolved conflicts with dev's changes" || echo "No changes to commit"
 
-      - name: Push changes (for normal files) using PERSION_G_TOKEN
-        run: |
-          git push origin main || git push origin main --force
+      - name: Push changes using PAT_TOKEN
+        run: git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSION_G_TOKEN }}
-
-      - name: Push workflow files separately using GITHUB_TOKEN
-        run: |
-          git push origin main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
 
 
