@@ -4,12 +4,10 @@ on:
   push:
     branches:
       - dev
-  workflow_dispatch:  # ✅ Allows manual triggering
 
 permissions:
   contents: write
   pull-requests: write
-  actions: write
 
 jobs:
   merge:
@@ -18,26 +16,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # ✅ Fetch full history for proper merging
+          fetch-depth: 0
 
       - name: Configure Git
         run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "actions@github.com"
+          git config --global user.name "naveen-realtek"
+          git config --global user.email "naveen.t@realtekconsulting.net"
 
-      - name: Fetch latest changes
-        run: git fetch --all
-
-      - name: Checkout main branch
-        run: git checkout main
-
-      - name: Merge dev into main (Resolve conflicts with dev’s changes)
+      - name: Merge dev into main
         run: |
-          git merge origin/dev --strategy-option=theirs --allow-unrelated-histories || echo "Merge conflicts resolved automatically"
-          if ! git diff --quiet; then
-            git commit -am "Auto-merging dev into main - resolved conflicts with dev's changes"
-          fi
-
-      - name: Push changes using PAT_TOKEN (With Workflow Permissions)
-        run: |
-          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/naveen-realtek/fe_demo.git main
+          git checkout main
+          git pull origin main
+          git merge --no-ff dev -m "Auto-merging dev into main"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
