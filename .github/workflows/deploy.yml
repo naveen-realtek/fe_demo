@@ -1,14 +1,9 @@
-name: Auto Merge & Trigger Jenkins
+name: Trigger Jenkins on Main Push
 
 on:
   push:
     branches:
-      - main  # Run this workflow when changes are pushed to main
-
-permissions:
-  contents: write
-  pull-requests: write
-  actions: write  # ✅ Allows modifying workflow files
+      - main
 
 jobs:
   trigger-jenkins:
