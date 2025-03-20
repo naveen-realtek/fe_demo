@@ -1,4 +1,4 @@
-# rltk-adminR
+# rltk-admin
 
 ## Environment file
 
