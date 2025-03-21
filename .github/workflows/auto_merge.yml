@@ -151,17 +151,15 @@ jobs:
 
       - name: Merge dev into main (resolve conflicts in favor of dev)
         run: |
-          git merge dev --no-edit --strategy-option=theirs || true
+          git merge dev --no-edit || true
+          git ls-files -u | awk '{print $4}' | sort -u | xargs git checkout --theirs || true
+          git add .
           git commit --allow-empty -m "Auto-merging dev into main - resolved conflicts with dev's changes"
 
       - name: Push merged changes to main
-        run: |
-          git push origin main
+        run: git push origin main
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-
-      - name: Wait for GitHub to process push
-        run: sleep 10  # Ensures push event is fully processed
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   trigger-jenkins:
     needs: merge-and-trigger
