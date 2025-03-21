@@ -162,10 +162,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-  # trigger-jenkins:
-  #   needs: git_pipeline  # Ensures this job runs only after git_pipeline completes successfully
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Trigger Jenkins Job
-  #       run: |
-  #         curl -X POST "http://192.168.1.65:8080/job/git_pipeline/build"      --user "naveen_local:116f1b7ae6450bb77bd20562b0c4475b29"
+  trigger-jenkins:
+    needs: git_pipeline  # Ensures this job runs only after git_pipeline completes successfully
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Jenkins Job
+        run: |
+          curl -X POST "http://192.168.1.65:8080/job/git_pipeline/build"      --user "naveen_local:116f1b7ae6450bb77bd20562b0c4475b29"
