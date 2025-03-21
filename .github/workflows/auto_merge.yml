@@ -118,6 +118,59 @@
 #         env:
 #           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}  # Use a PAT token
 
+# name: Auto Merge Dev to Main and Trigger Jenkins
+
+# on:
+#   push:
+#     branches:
+#       - dev  # Runs when code is pushed to 'dev'
+
+# permissions:
+#   contents: write
+#   pull-requests: write
+#   actions: write
+
+# jobs:
+#   git_pipeline:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0  # Fetch full history for proper merging
+
+#       - name: Configure Git
+#         run: |
+#           git config --global user.name "github-actions"
+#           git config --global user.email "actions@github.com"
+
+#       - name: Checkout main branch
+#         run: |
+#           git checkout main
+#           git pull origin main  # Ensure it's up to date
+
+#       - name: Merge dev into main (resolve conflicts in favor of dev)
+#         run: |
+#           git merge dev --no-edit || true
+#           git ls-files -u | awk '{print $4}' | sort -u | xargs git checkout --theirs || true
+#           git add .
+#           git commit --allow-empty -m "Auto-merging dev into main - resolved conflicts with dev's changes"
+
+#       - name: Push merged changes to main
+#         run: |
+#           git push origin main
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+#   trigger-jenkins:
+#     needs: git_pipeline  # Ensures this job runs only after git_pipeline completes successfully
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Trigger Jenkins Job
+#         run: |
+#           curl -X POST "http://192.168.1.65:8080/job/git_pipeline/build"      --user "naveen_local:116f1b7ae6450bb77bd20562b0c4475b29"
+
+
 name: Auto Merge Dev to Main and Trigger Jenkins
 
 on:
@@ -168,4 +221,5 @@ jobs:
     steps:
       - name: Trigger Jenkins Job
         run: |
-          curl -X POST "http://192.168.1.65:8080/job/git_pipeline/build"      --user "naveen_local:116f1b7ae6450bb77bd20562b0c4475b29"
+          curl -X POST "http://192.168.1.65:8080/job/git_pipeline/buildWithParameters" \
+               --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}"
