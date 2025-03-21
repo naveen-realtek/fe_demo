@@ -1320,28 +1320,7 @@ function CandidatesResponseTypes(props) {
       width: 200,
       render: (_, record) => <div>{record.name}</div>,
     },
-    {
-      key: "2",
-      dataIndex: "Response Category",
-      title: () => (
-        <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-          <span>Response Category</span>
-        </div>
-      ),
-      render: (_, record) => (
-        <div>
-          {record.responseCategory === "Positive" && (
-            <Tag color="green">Positive</Tag>
-          )}
-          {record.responseCategory === "Neutral" && (
-            <Tag color="blue">Neutral</Tag>
-          )}
-          {record.responseCategory === "Negative" && (
-            <Tag color="red">Negative</Tag>
-          )}
-        </div>
-      ),
-    },
+ 
     {
       key: "6",
       dataIndex: "status",

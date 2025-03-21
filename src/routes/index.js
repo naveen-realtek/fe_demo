@@ -19,8 +19,8 @@ import { OrgSetLocationAdd } from '../pages/organization-settings/location/add';
 import { UserSettingsTeam } from '../pages/user-settings/team/team';
 import { UserSettingsTeamAdd } from '../pages/user-settings/team/team-add';
 import { UserSettingsRoles } from '../pages/user-settings/role/roles';
-import { UserSettingsRolesAdd } from '../pages/user-settings/role/roles-add';
 import { UserSettingsRolesView } from '../pages/user-settings/role/roles-view';
+import { UserRolesAdd } from '../components/user-settings/roles-add/roles-add';
 import { UserSettingsLimit } from '../pages/user-settings/limit/limit';
 import { MasterJobTags } from '../pages/master/jobs/tags/tags';
 import { MasterJobTaxTerms } from '../pages/master/jobs/tax-terms/tax-terms';
@@ -60,17 +60,10 @@ export const AdminRoutes = () => {
             <Route path="/usersettings/teams/add" element={<UserSettingsTeamAdd />} />
             <Route path="/usersettings/teams/edit/:id" element={<UserSettingsTeamAdd />} />
             <Route path="/usersettings/roles" element={<UserSettingsRoles />} />
-            <Route path="/usersettings/roles/add" element={<UserSettingsRolesAdd />} />
-            <Route path="/usersettings/roles/admin" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/manager" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/lead-recruiter" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/recruiter" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/manager" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/lead-recruiter" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/recruiter" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/talent-acquisition-executive" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/management" element={<UserSettingsRolesView />} />
-            <Route path="/usersettings/roles/senior-recruiter" element={<UserSettingsRolesView />} />
+            <Route path="/usersettings/roles/add" element={<UserRolesAdd />} />
+            <Route path="/usersettings/roles/edit/:roleId" element={<UserRolesAdd />} />
+            <Route path="/usersettings/roles/:roleId" element={<UserSettingsRolesView />} />
+
             <Route path="/usersettings/user-limits" element={<UserSettingsLimit />} />
             <Route path="/jobs/tags" element={<MasterJobTags />} />
             <Route path="/jobs/tax-terms" element={<MasterJobTaxTerms />} />

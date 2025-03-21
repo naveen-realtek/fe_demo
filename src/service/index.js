@@ -1,6 +1,7 @@
 import { CandidateService } from "./candidate-services";
 import { ClientServices } from "./client-services";
 import { MasterServices } from "./master-service";
+import { RoleService } from "./role-service";
 import { AuthorizationService } from "./user-service";
 
 const serviceUrl = window.SERVICE_URL || "/";
@@ -13,3 +14,4 @@ export const authorizationService = new AuthorizationService(`${serviceUrl + api
 export const candidateService = new CandidateService(`${serviceUrl + apiPathCa}`);
 export const ClientService = new ClientServices(`${serviceUrl + apiPathClient}`);
 export const masterService = new MasterServices(`${serviceUrl + apimaster}`);
+export const rolesService = new RoleService(`${serviceUrl + apiPath}`);

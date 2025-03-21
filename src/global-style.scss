@@ -16,6 +16,10 @@
     padding-bottom: 0px;
 }
 
+.margin-left-container{
+    margin: 0px 20px;;
+}
+
 .common-SpaceAdmin {
     margin-top: 60px;
     padding: 0px 20px;
@@ -23,7 +27,7 @@
 
 .zn-admin-Card {
     background: white;
-    border-radius: 8px;
+    border-radius: 8px !important;
 }
 
 .company-Logo.mb-3 {
@@ -95,4 +99,51 @@
     height: 27px;
     width: fit-content;
     padding: 0px 12px;
+}
+
+
+/* Ensure the entire layout does not scroll */
+.fixed-container {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    height: 100vh; /* Full height */
+    overflow: hidden;
+    background: #ffffff;
+}
+
+
+/* Fix the Zinnext Default heading, role details, and breadcrumb */
+.fixed-header {
+    position: sticky;
+    margin-top: 50px !important;
+    padding: 10px 0;
+}
+
+.fixed-card {
+    position: sticky;
+    z-index: 1000;
+    width: 95%;
+}
+
+.roles-active-table thead {
+    position: sticky !important;
+    top: 0;
+    z-index: 1000;
+    background: #ffffff;
+    border-bottom: 1px solid #586888;
+}
+
+.height-card-roles{
+    max-height: calc(111vh - 250px);
+}
+
+.roles-active-sec {
+    max-height: calc(95vh - 250px); /* Adjust height dynamically */
+    overflow-y: auto;
+}
+
+/* Ensure the tree structure stops at the last child */
+.roles-group-body:last-child .tree-view-list span {
+    border-left: none !important;
 }

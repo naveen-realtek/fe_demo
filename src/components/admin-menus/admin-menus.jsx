@@ -40,11 +40,11 @@ export default function AdminMenus(props) {
                             labelname: 'Teams',
                             icon: <ZinTeamsIcon />,
                         },
-                        // {
-                        //     key: 'usersettings/roles',
-                        //     labelname: 'Roles',
-                        //     icon: <ZinUserRoleIcon />
-                        // },
+                        {
+                            key: 'usersettings/roles',
+                            labelname: 'Roles',
+                            icon: <ZinUserRoleIcon />
+                        },
                         // {
                         //     key: 'usersettings/user-limits',
                         //     labelname: 'User Limits',

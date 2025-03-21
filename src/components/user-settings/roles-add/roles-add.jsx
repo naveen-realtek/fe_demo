@@ -1,303 +1,421 @@
-import { Breadcrumb, Button, Form, Select, Input, Checkbox, ConfigProvider } from 'antd';
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { OverlayMenuDropdown } from '../../../shared-components/overlay-menu/overlay-menu';
-import { ZinDeleteIcon, ZinEditIcon, ZinlistviewEdit, ZinRightArrow, ZinSolidUsers } from '../../images';
+import {
+  Breadcrumb,
+  Button,
+  Form,
+  Select,
+  Input,
+  Checkbox,
+  ConfigProvider,
+  Spin,
+} from "antd";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { OverlayMenuDropdown } from "../../../shared-components/overlay-menu/overlay-menu";
+import { rolesService } from "../../../service";
+import { ZinRightArrow } from "../../images";
 
-export const UserRolesAdd = (props) => {
+export const UserRolesAdd = () => {
+  const { roleId } = useParams();
+  const [form] = Form.useForm();
+  const [importPermissions, setImportPermissions] = useState([]);
+  const [selectedRoleId, setSelectedRoleId] = useState(null);
+  const [roleData, setRoleData] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const navigate = useNavigate();
 
-    const [checkedAll, setCheckedAll] = useState(false);
-    const [checked, setChecked] = useState({
-        nr1: false,
-        nr2: false,
-        nr3: false,
-        nr4: false,
-        nr5: false
+  useEffect(() => {
+    if (roleId) {
+      setIsEditMode(true);
+      fetchEditRoleData();
+    } else {
+      fetchImportPermissions();
+    }
+  }, [roleId]);
+
+  const fetchImportPermissions = async () => {
+    setLoading(true);
+    try {
+      const response = await rolesService.getRoleList();
+      if (response?.status) {
+        setImportPermissions(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching import permissions:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchEditRoleData = async () => {
+    setLoading(true);
+    try {
+      const response = await rolesService.getEditRoleList(roleId);
+      if (response.status) {
+        const roleDetails = response.data;
+        setRoleData(roleDetails);
+        setSelectedRoleId(roleDetails.importedPermissionId);
+
+        // Get role name from import permissions list
+        const roleName =
+          importPermissions.find(
+            (r) => r.role_id === roleDetails.importedPermissionId
+          )?.role_name || "";
+
+        // Set form fields for edit mode
+        form.setFieldsValue({
+          roleName: roleDetails.newRoleName,
+          roleDescription: roleDetails.roleDescription,
+          importPermissions: roleDetails.importedPermissionName,
+        });
+
+        // Fetch table details using getRoleDetails API
+        fetchRoleDetails(roleDetails.roleId);
+      }
+    } catch (error) {
+      console.error("Error fetching role details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch role details for the table using getRoleDetails API
+  const fetchRoleDetails = async (roleId) => {
+    setLoading(true);
+    try {
+      const response = await rolesService.getRoleDetails(roleId);
+      if (response) {
+        setRoleData(response);
+      }
+    } catch (error) {
+      console.error("Error fetching role details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleSelect = async (roleId) => {
+    setLoading(true);
+    setSelectedRoleId(roleId);
+    try {
+      const response = await rolesService.getRoleDetails(roleId);
+      if (response) {
+        setRoleData(response);
+      }
+    } catch (error) {
+      console.error("Error fetching role details:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckboxChange = (
+    moduleName,
+    subModuleName,
+    permissionType,
+    checked
+  ) => {
+    setRoleData((prev) => {
+      const updatedRoleData = structuredClone(prev); // Deep clone to prevent state mutation
+
+      if (!updatedRoleData[moduleName]) {
+        updatedRoleData[moduleName] = {}; // Ensure module exists
+      }
+
+      if (subModuleName) {
+        if (!updatedRoleData[moduleName][subModuleName]) {
+          updatedRoleData[moduleName][subModuleName] = {}; // Ensure submodule exists
+        }
+        updatedRoleData[moduleName][subModuleName][permissionType] = checked
+          ? "1"
+          : "0";
+      } else {
+        updatedRoleData[moduleName][permissionType] = checked ? "1" : "0";
+      }
+
+      return { ...updatedRoleData }; // Ensure React detects the change
     });
+  };
 
-    const toggleCheck = (inputName) => {
-        setChecked((prevState) => {
-            const newState = { ...prevState };
-            newState[inputName] = !prevState[inputName];
-            return newState;
-        });
+  const handleSubmit = async () => {
+    setLoading(false);
+    setSubmitting(true);
+    const payload = {
+      importedPermissionId: selectedRoleId,
+      importedPermissionName:
+        importPermissions.find((r) => r.role_id === selectedRoleId)
+          ?.role_name || "",
+      newRoleName: form.getFieldValue("roleName"),
+      roleId: isEditMode ? parseInt(roleId) : undefined,
+      roleDescription: form.getFieldValue("roleDescription"),
+      ...roleData,
     };
 
-    const selectAll = (value) => {
-        setCheckedAll(value);
-        setChecked((prevState) => {
-            const newState = { ...prevState };
-            for (const inputName in newState) {
-                newState[inputName] = value;
-            }
-            return newState;
-        });
-    };
+    try {
+      if (isEditMode) {
+        await rolesService.editCustomRole(payload);
+      } else {
+        await rolesService.addCustomRole(payload);
+      }
 
-    useEffect(() => {
-        let allChecked = true;
-        for (const inputName in checked) {
-            if (checked[inputName] === false) {
-                allChecked = false;
-            }
-        }
-        if (allChecked) {
-            setCheckedAll(true);
-        } else {
-            setCheckedAll(false);
-        }
-    }, [checked]);
+      // navigate("/app/admin/usersettings/roles");
+      // window.location.reload(); // Ensure fresh data loads
+    } catch (error) {
+      console.error("Error submitting role:", error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-    const validateMessages = {
-        required: 'Mandatory field.',                                                               // Common error message for required fields
-    };
-
-    return (
-        <div className='edit-company-information'>
-            <div className='admin-breadcrums'>
-                <Breadcrumb className="breadcrum-dropdown" separator={<ZinRightArrow />}>
-                    <Breadcrumb.Item>
-                        <Link to='/app/dashboard'>
-                            Home
-                        </Link>
-                    </Breadcrumb.Item>
-                    <Breadcrumb.Item>
-                        <Link to='/app/admin'>
-                            Admin
-                        </Link>
-                    </Breadcrumb.Item>
-                    <Breadcrumb.Item overlay={<OverlayMenuDropdown type="User settings" />} >
-                        User settings
-                    </Breadcrumb.Item>
-                    <Breadcrumb.Item>
-                        <Link to='/app/admin/usersettings/roles'>
-                            Roles
-                        </Link>
-                    </Breadcrumb.Item>
-                    <Breadcrumb.Item>
-                        Create custom role
-                    </Breadcrumb.Item>
-                </Breadcrumb>
-            </div>
-            <div className='common-SpaceAdmin'>
-                <div className='zn-admin-Card '>
-                    <ConfigProvider getPopupContainer={(triggerNode) => triggerNode?.parentNode}>
-                        <Form
-                            className="add-form"
-                            autoCorrect="off"
-                            autoCapitalize="off"
-                            autoComplete="off"
-                            layout="vertical"
-                            name="nest-messages"
-                            validateTrigger='onBlur'
-                            scrollToFirstError={true}
-                            validateMessages={validateMessages}
+  return (
+    <div className="edit-company-information">
+      <div className="admin-breadcrums">
+        <Breadcrumb
+          className="breadcrum-dropdown"
+          separator={<ZinRightArrow />}
+        >
+          <Breadcrumb.Item>
+            <Link to="/app/dashboard">Home</Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link to="/app/admin">Admin</Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item
+            overlay={<OverlayMenuDropdown type="User settings" />}
+          >
+            User settings
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            <Link to="/app/admin/usersettings/roles">Roles</Link>
+          </Breadcrumb.Item>
+          <Breadcrumb.Item>
+            {isEditMode ? "Edit custom role" : "Create custom role"}
+          </Breadcrumb.Item>
+        </Breadcrumb>
+      </div>
+      <div className="common-SpaceAdmin">
+        <Spin spinning={loading}>
+          <div className="zn-admin-Card">
+            <ConfigProvider>
+              <Form form={form} layout="vertical" name="roleForm">
+                <div className="zn-card-body height-card-roles mb-5 p-4">
+                  <div className="row">
+                    <div className="user-role-main-header">
+                      <div className="zn-light-primary-color zn-fs-s zn-fw-500">
+                        {isEditMode ? "Edit user role" : "Add user role"}
+                      </div>
+                      <div>
+                        {isEditMode
+                          ? "Edit a user role with custom permissions"
+                          : "Create a user role with custom permissions"}
+                      </div>
+                    </div>
+                    <div className="row d-flex align-items-stretch">
+                      <div className="col-lg-4">
+                        <Form.Item
+                          label="Import permissions"
+                          name="importPermissions"
+                          required
                         >
-                            <div className='zn-card-body mb-5 p-4'>
-                                <div className='row'>
-                                    <div className='col-lg-11'>
-                                        <div className='row'>
-                                            <div className='col-lg-4'>
-                                                <div className='zn-light-primary-color zn-fs-s zn-fw-500'>
-                                                    Add user role
-                                                </div>
-                                                <div>
-                                                    Create a user role with custom permissions
-                                                </div>
-                                            </div>
-                                            <div className='col-lg-4'>
-                                                <Form.Item required label="Import Permisions" className='mb-3'>
-                                                    <Select
-                                                        size='large'
-                                                        showSearch
-                                                        placeholder="Select Import Permisions"
-                                                        optionFilterProp="children"
-                                                        filterOption={(input, option) =>
-                                                            (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                                        }
-                                                        options={[
-                                                            {
-                                                                value: '1',
-                                                                label: 'Recruiter',
-                                                            },
-                                                            {
-                                                                value: '2',
-                                                                label: 'Lead recruiter',
-                                                            },
-                                                            {
-                                                                value: '3',
-                                                                label: 'Manager',
-                                                            },
-                                                            {
-                                                                value: '4',
-                                                                label: 'Talent Acquisition executive',
-                                                            },
-                                                            {
-                                                                value: '5',
-                                                                label: 'Management',
-                                                            },
-                                                            {
-                                                                value: '6',
-                                                                label: 'Admin',
-                                                            },
-                                                        ]}
-                                                    />
-                                                    <span className='zn-light-primary-color zn-fs-xs'> * Begin with an existing permissions template and edit.</span>
-                                                </Form.Item>
-                                            </div>
-                                            <div className='col-lg-4'>
-                                                <Form.Item label="Role name" className='mb-3'>
-                                                    <Input type='text' size='large' placeholder="Enter Role name" />
-                                                </Form.Item>
-                                            </div>
-                                        </div>
-                                        <div className='roles-active-sec'>
-                                            <div className='table-responsive'>
-                                                <table className='col-md-10 roles-active-table'>
-                                                    <thead >
-                                                        <tr>
-                                                            <th>Modules</th>
-                                                            <th className='text-center'>Add</th>
-                                                            <th className='text-center'>View</th>
-                                                            <th className='text-center'>Edit</th>
-                                                            <th className='text-center'>Delete</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody >
-                                                        <tr>
-                                                            <th>jobs</th>
-                                                            <th className='text-center'><Checkbox /> </th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th>Candidates</th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                        </tr>
-                                                    </tbody>
-                                                    <tbody className='roles-group-head roles-group-body'>
-                                                        <tr>
-                                                            <th className='tree-view-title'>
-                                                                <span>
-                                                                    Networks
-                                                                </span>
-                                                            </th>
-                                                            <td className='text-center'> <Checkbox
-                                                                onChange={(event) => selectAll(event.target.checked)}
-                                                                checked={checkedAll}
-                                                            /></td>
-                                                            <td className='text-center'><Checkbox /></td>
-                                                            <td className='text-center'><Checkbox /></td>
-                                                            <td className='text-center'><Checkbox /></td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='tree-view-list'>
-                                                                <span>
-                                                                    Vendors
-                                                                </span>
-                                                            </th>
-                                                            <th className='text-center'>
-                                                                <Checkbox
-                                                                    name="nr1"
-                                                                    onChange={() => toggleCheck("nr1")}
-                                                                    checked={checked["nr1"]}
-                                                                /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <td className='tree-view-list'>
-                                                                <span>
-                                                                    Mail List
-                                                                </span>
-                                                            </td>
-                                                            <th className='text-center'>
-                                                                <Checkbox
-                                                                    name="nr2"
-                                                                    onChange={() => toggleCheck("nr2")}
-                                                                    checked={checked["nr2"]}
-                                                                />
-                                                            </th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='tree-view-list'>
-                                                                <span>
-                                                                    Clients
-                                                                </span>
-                                                            </th>
-                                                            <th className='text-center'>
-                                                                <Checkbox
-                                                                    name="nr3"
-                                                                    onChange={() => toggleCheck("nr3")}
-                                                                    checked={checked["nr3"]}
-                                                                />
-                                                            </th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='tree-view-list'>
-                                                                <span>
-                                                                    Hotlist
-                                                                </span>
-                                                            </th>
-                                                            <th className='text-center'>
-                                                                <Checkbox
-                                                                    name="nr4"
-                                                                    onChange={() => toggleCheck("nr4")}
-                                                                    checked={checked["nr4"]}
-                                                                />
-                                                            </th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='tree-view-list'>
-                                                                <span>
-                                                                    Candidate Groups
-                                                                </span>
-                                                            </th>
-                                                            <th className='text-center'>
-                                                                <Checkbox
-                                                                    name="nr5"
-                                                                    onChange={() => toggleCheck("nr5")}
-                                                                    checked={checked["nr5"]}
-                                                                />
-                                                            </th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                            <th className='text-center'><Checkbox /></th>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className='bg-white add-form-footer d-flex align-items-center justify-content-end gap-3'>
-                                <Button className='zn-fw-500 zn-fs-s zn-light-primary-color' size="small" type="secondary">
-                                    <Link to='/app/admin/usersettings/roles'>
-                                        Cancel
-                                    </Link>
-                                </Button>
-                                <Button className='zn-fw-500 zn-fs-s' size="small" type="primary" >
-                                    Save</Button>
-                            </div>
-                        </Form>
-                    </ConfigProvider>
+                          <Select
+                            placeholder="Select permission"
+                            size="large"
+                            disabled={isEditMode}
+                            onChange={handleRoleSelect}
+                            loading={loading}
+                            options={importPermissions.map((role) => ({
+                              value: role.role_id,
+                              label:
+                                role.role_name.charAt(0).toUpperCase() +
+                                role.role_name.slice(1).toLowerCase(),
+                            }))}
+                            style={{ height: "48px" }}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div className="col-lg-4">
+                        <Form.Item label="Role name" name="roleName" required>
+                          <Input
+                            type="text"
+                            size="large"
+                            placeholder="Enter role name"
+                            style={{ height: "48px" }}
+                          />
+                        </Form.Item>
+                      </div>
+                      <div className="col-lg-4">
+                        <Form.Item
+                          label="Role Description"
+                          name="roleDescription"
+                          required
+                        >
+                          <Input
+                            placeholder="Enter role description"
+                            type="text"
+                            size="large"
+                            style={{
+                              height: "48px",
+                            }}
+                          />
+                        </Form.Item>
+                      </div>
+                    </div>
+                  </div>
+                  {loading ? (
+                    <Spin size="large" />
+                  ) : (
+                    selectedRoleId &&
+                    roleData &&
+                    Object.keys(roleData).length > 0 && (
+                      <div className="roles-active-sec">
+                        <div className="table-responsive">
+                          <table className="col-md-10 roles-active-table">
+                            <thead>
+                              <tr>
+                                <th>Modules</th>
+                                <th className="text-center">Add</th>
+                                <th className="text-center">View</th>
+                                <th className="text-center">Edit</th>
+                                <th className="text-center">Delete</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {Object.entries(roleData).map(
+                                ([moduleName, module]) => (
+                                  <React.Fragment key={module.id}>
+                                    <tr>
+                                      <td>
+                                        <strong>
+                                          {moduleName
+                                            .toLowerCase()
+                                            .replace(/\b\w/g, (char) =>
+                                              char.toUpperCase()
+                                            )}
+                                        </strong>
+                                      </td>
+                                      {[
+                                        "addAccess",
+                                        "viewAccess",
+                                        "editAccess",
+                                        "deleteAccess",
+                                      ].map((permissionType) => (
+                                        <td
+                                          className="text-center"
+                                          key={permissionType}
+                                        >
+                                          <Checkbox
+                                            checked={
+                                              module[permissionType] === "1"
+                                            }
+                                            onChange={(e) =>
+                                              handleCheckboxChange(
+                                                moduleName,
+                                                null,
+                                                permissionType,
+                                                e.target.checked
+                                              )
+                                            }
+                                          />
+                                        </td>
+                                      ))}
+                                    </tr>
+                                    {Object.entries(module)
+                                      .filter(
+                                        ([key, value]) =>
+                                          typeof value === "object" &&
+                                          value !== null
+                                      )
+                                      .map(
+                                        (
+                                          [submoduleName, submodule],
+                                          index,
+                                          array
+                                        ) => (
+                                          <tr
+                                            key={submodule.id}
+                                            className="roles-group-body"
+                                          >
+                                            <td className="tree-view-list">
+                                              <span
+                                                style={{
+                                                  height:
+                                                    index === array.length - 1
+                                                      ? "24px"
+                                                      : "auto",
+                                                }}
+                                              >
+                                                {submoduleName
+                                                  .toLowerCase()
+                                                  .replace(/\b\w/g, (char) =>
+                                                    char.toUpperCase()
+                                                  )}
+                                              </span>
+                                            </td>
+                                            {[
+                                              "addAccess",
+                                              "viewAccess",
+                                              "editAccess",
+                                              "deleteAccess",
+                                            ].map((permissionType) => (
+                                              <td
+                                                className="text-center"
+                                                key={permissionType}
+                                              >
+                                                <Checkbox
+                                                  checked={
+                                                    submodule[
+                                                      permissionType
+                                                    ] === "1"
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleCheckboxChange(
+                                                      moduleName,
+                                                      submoduleName,
+                                                      permissionType,
+                                                      e.target.checked
+                                                    )
+                                                  }
+                                                />
+                                              </td>
+                                            ))}
+                                          </tr>
+                                        )
+                                      )}
+                                    <tr className="module-divider">
+                                      <td colSpan={5}></td>
+                                    </tr>
+                                  </React.Fragment>
+                                )
+                              )}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )
+                  )}
                 </div>
-            </div>
-        </div>
-    );
-}
+                <div className="bg-white add-form-footer-btns add-form-footer d-flex align-items-center justify-content-end gap-3">
+                  <Button
+                    className="zn-fw-500 zn-fs-s zn-light-primary-color"
+                    size="small"
+                    type="secondary"
+                  >
+                    <Link to="/app/admin/usersettings/roles">Cancel</Link>
+                  </Button>
+                  <Button
+                    type="primary"
+                    onClick={handleSubmit}
+                    loading={submitting}
+                  >
+                    {isEditMode ? "Update" : "Save"}
+                  </Button>
+                </div>
+              </Form>
+            </ConfigProvider>
+          </div>
+        </Spin>
+      </div>
+    </div>
+  );
+};

@@ -1,8 +1,7 @@
-
-import React, { useState, useEffect } from "react";
-import { Breadcrumb, Button, Table, notification, Spin } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import { Breadcrumb, Button, Table, notification, Spin, Input } from "antd";
 import { Link } from "react-router-dom";
-import { ZinEditIcon, ZinRightArrow } from "../../images";
+import { ZinEditIcon, ZinRightArrow, ZinSearch, ZinClear } from "../../images";
 import { OverlayMenuDropdown } from "../../../shared-components/overlay-menu/overlay-menu";
 import { authorizationService } from "../../../service";
 import TeamMembersList from "./TeamMembersList";
@@ -11,94 +10,64 @@ import "./index.scss";
 
 export const UserTeams = () => {
   const [usersTeamData, setUsersTeamData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [userDrawerOpen, setUserDrawerOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [loading, setLoading] = useState(false);
-  // const [pagination, setPagination] = useState({
-  //   current: 1,
-  //   pageSize: 10,
-  //   total: 0,
-  // });
+  const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalRows, setTotalRows] = useState(0);
+  const inputFocusElement = useRef(null);
+  const rowsPerPage = 10;
 
   useEffect(() => {
     fetchTeams();
-  }, []);
-  const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      showSizeChanger: false
-    },
-  });
+  }, [currentPage]);
 
   const fetchTeams = async () => {
     setLoading(true);
     try {
-      const offset = 0;
-      const response = await authorizationService.getAllTeams(
-        offset,
-        10
-      );
-      setUsersTeamData(response && response.teams);
-      setTableParams({
-        ...tableParams,
-        pagination: {
-          ...tableParams.pagination,
-          total: response?.totalCount,
-        },
-      });
-      // if (response?.teams && Array.isArray(response.teams)) {
-      //   const formattedTeams = response.teams.map((team) => ({
-      //     key: team.teamId,
-      //     id: team.teamId,
-      //     name: team.teamName || `Team ${team.teamId}`,
-      //     noOfMembers: team.noOfTeamMembers || 0,
-      //     reportingManager: team.reportingManager || "N/A",
-      //     members: Array.isArray(team.teamMembers) ? team.teamMembers : [],
-      //   }));
+      const offset = (currentPage - 1) * rowsPerPage;
+      const response = await authorizationService.getAllTeams(offset, rowsPerPage);
 
-      //   setUsersTeamData(formattedTeams);
-      //   setPagination((prev) => ({ ...prev, total: response.totalCount || 0 }));
-      // } else {
-      //   console.error("Invalid response format", response);
-      //   setUsersTeamData([]);
-      //   setPagination((prev) => ({ ...prev, total: 0 }));
-      // }
+      if (response?.teams) {
+        setUsersTeamData(response.teams);
+        setFilteredData(response.teams);
+        setTotalRows(response.totalCount || 0);
+      }
     } catch (error) {
       console.error("Error fetching teams:", error);
       notification.error({ message: "Failed to fetch teams" });
       setUsersTeamData([]);
+      setFilteredData([]);
     } finally {
       setLoading(false);
     }
   };
-  const limit = 10;
-  const handleTableChange = async (pagination) => {
-    setLoading(true);
-    const page = pagination.current - 1;
-    const pageSize = pagination.pageSize;
-    setTableParams((prevParams) => ({
-      ...prevParams,
-      pagination: {
-        ...prevParams.pagination,
-        current: pagination.current,
-        pageSize: pageSize,
-      },
-    }));
-    const offset = page * pageSize;
-    if (pageSize !== tableParams.pagination?.pageSize) {
-      setUsersTeamData([]);
+
+  const handleSearch = (event) => {
+    const value = event.target.value;
+    setSearchText(value);
+
+    if (value.length < 3 && value.length > 0) return;
+
+    if (value) {
+      const filtered = usersTeamData.filter((team) =>
+        team.teamName.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredData(filtered);
+    } else {
+      setFilteredData(usersTeamData);
     }
-    const response = await authorizationService.getAllTeams(
-      offset,
-      limit
-    );
-    setLoading(false);
-    setUsersTeamData(response.teams)
-    // setPagination((prev) => ({
-    //   ...prev,
-    //   current: pagination.current,
-    //   pageSize: pagination.pageSize,
-    // }));
+  };
+
+  const handleClearSearch = () => {
+    setSearchText("");
+    setFilteredData(usersTeamData);
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
 
   const openUserDrawer = (teamId) => {
@@ -118,16 +87,14 @@ export const UserTeams = () => {
       title: "Name",
       dataIndex: "teamName",
       width: 180,
-      render: (name, team) => name ? (
-        <>
-          <a
-            className="cursor-pointer openUserDrawer"
-            onClick={() => openUserDrawer(team.id)}
-          >
+      render: (name, team) =>
+        name ? (
+          <a className="cursor-pointer openUserDrawer" onClick={() => openUserDrawer(team.id)}>
             {name}
           </a>
-        </>
-      ) : "N/A"
+        ) : (
+          "N/A"
+        ),
     },
     {
       key: "2",
@@ -141,14 +108,14 @@ export const UserTeams = () => {
       dataIndex: "teamMembers",
       className: "team-members-tags",
       width: 260,
-      render: (members) => (members ? (<><TeamMembersList members={members} /></>) : "N/A"),
+      render: (members) => (members ? <TeamMembersList members={members} /> : "N/A"),
     },
     {
       key: "4",
       title: "Reporting Manager",
       width: 130,
       dataIndex: "reportingManager",
-      render: (reportingManager) => (reportingManager ? (<>{reportingManager}</>) : "N/A"),
+      render: (reportingManager) => (reportingManager ? reportingManager : "N/A"),
     },
     {
       key: "5",
@@ -178,35 +145,52 @@ export const UserTeams = () => {
           <Breadcrumb.Item>
             <Link to="/app/admin">Admin</Link>
           </Breadcrumb.Item>
-          <Breadcrumb.Item
-            overlay={<OverlayMenuDropdown type="User settings" />}
-          >
+          <Breadcrumb.Item overlay={<OverlayMenuDropdown type="User settings" />}>
             User settings
           </Breadcrumb.Item>
           <Breadcrumb.Item>Teams</Breadcrumb.Item>
         </Breadcrumb>
-        <Button type="primary" size="small" className="add-button-team">
-          <Link to="/app/admin/usersettings/teams/add">Add</Link>
-        </Button>
+        <div className="d-flex align-items-center user-buttons-top">
+
+        <div className="search-toolset">
+
+          <ZinSearch onClick={() => inputFocusElement.current?.focus()} />
+          <Input
+            ref={inputFocusElement}
+            placeholder="Search teams"
+            value={searchText}
+            onChange={handleSearch}
+            suffix={
+              searchText ? <ZinClear onClick={handleClearSearch} style={{ cursor: "pointer" }} /> : null
+            }
+            autoFocus
+          />
+           </div>
+           <div className="toolbar me-3 ms-3 text-end">
+          <Button type="primary" size="small" className="add-button-team">
+            <Link to="/app/admin/usersettings/teams/add">Add</Link>
+          </Button>
+          </div>
+          </div>
       </div>
 
       <div className="common-SpaceAdmin">
         <Spin spinning={loading}>
           <Table
             columns={columns}
-            dataSource={usersTeamData}
+            dataSource={filteredData}
             scroll={{ y: "calc(100vh - 250px)" }}
-            pagination={tableParams.pagination}
-            onChange={handleTableChange}
+            pagination={{
+              current: currentPage,
+              pageSize: rowsPerPage,
+              total: totalRows,
+              onChange: handlePageChange,
+            }}
           />
         </Spin>
       </div>
 
-      <TeamDetailDrawer
-        open={userDrawerOpen}
-        onClose={closeDrawer}
-        teamId={selectedTeamId}
-      />
+      <TeamDetailDrawer open={userDrawerOpen} onClose={closeDrawer} teamId={selectedTeamId} />
     </>
   );
 };

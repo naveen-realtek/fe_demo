@@ -35,7 +35,12 @@ export const AdminUser = () => {
   const inputRef = useRef(null);
   const [candidateSearchForm] = Form.useForm();
   const [selectedItem, setSelectedItem] = useState(null);
-
+  const [loadingList, setLoadingList] = useState(false);
+  const [userProfileData, setUserProfileData] = useState([]);
+  const [searchText, setSearchText] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalRows, setTotalRows] = useState(0);
+  const rowsPerPage = 10;
 
   const handleViewUserDetails = (user) => {
     navigate(`/app/admin/usersettings/user/add?userId=${user.userId}`, {
@@ -43,33 +48,27 @@ export const AdminUser = () => {
     });
   };
 
-  const [loadingList, setLoadingList] = useState(false);
-  const [userProfileData, setUserProfileData] = useState([]);
-
-  const userDataApi = async (page = 1) => {
-    const limit = 10;
+  const userDataApi = async (page = 1, search = "") => {
+    const limit = rowsPerPage;
     setLoadingList(true);
-    const offset = (page - 1) * limit; // Calculate offset dynamically
+    const offset = (page - 1) * limit;
 
     try {
-      const response = await authorizationService.getAllUsers(offset, limit, selectedItem || "");
+      const response = await authorizationService.getAllUsers(offset, limit, search);
       setLoadingList(false);
 
       if (response?.data) {
         let users = response.data.users;
 
-        // Filter out users with null, undefined, or empty photoLocation
         const usersWithPhotos = users.filter(user => user.photoLocation && user.photoLocation.trim() !== "");
 
         if (usersWithPhotos.length > 0) {
-          // Fetch profile images only for users who have a valid photoLocation
           const profileRequests = usersWithPhotos.map(user =>
             candidateService.getUserProfile(user.photoLocation)
           );
 
           const profileResponses = await Promise.allSettled(profileRequests);
 
-          // Map profile images back to users
           users = users.map(user => {
             const index = usersWithPhotos.findIndex(u => u.photoLocation === user.photoLocation);
             if (index !== -1 && profileResponses[index].status === "fulfilled") {
@@ -81,13 +80,7 @@ export const AdminUser = () => {
 
         setUserProfileData(users);
         setFilteredData(users);
-        setTableParams({
-          ...tableParams,
-          pagination: {
-            ...tableParams.pagination,
-            total: response && response.data.totalCount,
-          },
-        });
+        setTotalRows(response.data.totalCount || 0);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -95,8 +88,29 @@ export const AdminUser = () => {
   };
 
   useEffect(() => {
-    userDataApi();
-  }, []);
+    userDataApi(currentPage, searchText);
+  }, [currentPage, searchText]);
+
+  const handleSearch = (event) => {
+    const value = event.target.value.trim();
+    setSearchText(value);
+
+    if (value.length < 3 && value.length > 0) {
+      return;
+    }
+
+    userDataApi(1, value);
+  };
+
+  const handleClearSearch = () => {
+    setSearchText("");
+    userDataApi(1, "");
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+    userDataApi(newPage, searchText);
+  };
 
   const usercolumns = [
     {
@@ -108,8 +122,7 @@ export const AdminUser = () => {
       className: "Name-column-user",
       render: (_, data) => {
         const hasPhoto = data.photoLocation;
-        console.log("hasPhoto", hasPhoto);
-        const defaultAvatar = "/path/to/default-avatar.png"; // Change to your default image path
+        const defaultAvatar = "/path/to/default-avatar.png";
 
         return (
           <Tooltip title={`${data.nameTitle ? data.nameTitle + "." : ""} ${data.firstName} ${data.lastName}`}>
@@ -117,11 +130,6 @@ export const AdminUser = () => {
               <span className="user-name">
                 {data.firstName} {data.lastName}
               </span>
-              {/* <Image
-                width={100}
-                src={hasPhoto}
-                alt={data.firstName}
-              /> */}
             </div>
           </Tooltip>
         );
@@ -139,7 +147,6 @@ export const AdminUser = () => {
       width: 150,
       ellipsis: true,
     },
-
     {
       key: "3",
       title: "Team",
@@ -233,103 +240,6 @@ export const AdminUser = () => {
     },
   ];
 
-  const clientExport = () => {
-    //export modalpopup
-    setOpenExport(true);
-  };
-
-  const handleDelegate = (userId) => {
-    setDelegatedUsers((prev) => ({ ...prev, [userId]: true }));
-  };
-
-  const [searchQueryValue, setSearchQueryValue] = useState('');
-
-  const submissionSearchChange = async (value) => {
-    if (value.length > 0) {
-      setSearchQueryValue(value);
-    } else {
-      clearFunc();
-    }
-  }
-  const clearFunc = async () => {
-    const searchData = {
-      searchValue: searchQueryValue,
-    };
-    setSearchQueryValue("")
-    const res = await authorizationService.searchUsers(0, 10, searchData.searchValue);
-
-  };
-
-  const onFinishSubmissionSearch = async ({ searchValue }) => {
-    if (searchValue.length >= 3) {
-      await authorizationService.searchUsers(0, 10, searchValue);
-    }
-  };
-
-  const sortingList = [
-    {
-      label: " Recently added",
-      key: "1",
-      icon: selectedItem === "new" ? <div className="visible d-flex"><CheckOutlined /></div> : <div className="invisible d-flex"><CheckOutlined /></div>,
-      onClick: () => handleSortingClick("new")
-    },
-    {
-      label: "Recently updated",
-      key: "2",
-      icon: selectedItem === "old" ? <div className="visible d-flex"><CheckOutlined /></div> : <div className="invisible d-flex"><CheckOutlined /></div>,
-      onClick: () => handleSortingClick("old")
-    },
-  ]
-  const [tableParams, setTableParams] = useState({
-    pagination: {
-      current: 1,
-      showSizeChanger: false
-    },
-  });
-
-  const handleSortingClick = async (value) => {
-    setLoadingList(true);
-    if (selectedItem === value) {
-      setSelectedItem(null);
-      setLoadingList(false);
-      // clearFunc();
-    } else {
-      setSelectedItem(value);
-      const response = await authorizationService.getAllUsers(0, limit, selectedItem || "");
-
-      setLoadingList(false);
-      setFilteredData(response.data.users);
-      setTableParams({
-        ...tableParams,
-        pagination: {
-          ...tableParams.pagination,
-          total: response && response.data.totalCount,
-        },
-      });
-    }
-  }
-  const limit = 10;
-  const handleTableChange = async (pagination) => {
-    setLoadingList(true);
-    const page = pagination.current - 1;
-    const pageSize = pagination.pageSize;
-    setTableParams((prevParams) => ({
-      ...prevParams,
-      pagination: {
-        ...prevParams.pagination,
-        current: pagination.current,
-        pageSize: pageSize,
-      },
-    }));
-    const offset = page * pageSize;
-    if (pageSize !== tableParams.pagination?.pageSize) {
-      setFilteredData([]);
-    }
-    console.log("selectedItem", selectedItem);
-    const response = await authorizationService.getAllUsers(offset, limit, selectedItem || "");
-    setLoadingList(false);
-    setFilteredData(response.data.users)
-  }
   return (
     <div className="">
       <div className="admin-breadcrums">
@@ -349,17 +259,6 @@ export const AdminUser = () => {
             </Breadcrumb.Item>
             <Breadcrumb.Item className="breadcrumbsLink">User</Breadcrumb.Item>
           </Breadcrumb>
-          {/* <Avatar
-            size={64}
-            src={imageError ? "https://via.placeholder.com/64" : imageUrl} // Fallback image
-            alt="Profile Avatar"
-            onError={() => setImageError(true)}
-          />
-          <Image
-            width={200}
-            src={imageUrl}
-          /> */}
-          {/* <Avatar src={hasPhoto} /> */}
           <div>
             <Link>
               <ZinInfo />
@@ -369,69 +268,20 @@ export const AdminUser = () => {
       </div>
       <div className="admin-Layout">
         <div className="d-flex align-items-center user-buttons-top">
-          {/* Search Icon and Input Field */}
           <div className="search-toolset">
-            <Form
-              className='search-toolset'
-              layout='vertical'
-              autoCorrect='off'
-              autoCapitalize='off'
-              autoComplete='off'
-              form={candidateSearchForm}
-              onFinish={onFinishSubmissionSearch}
-            >
-              <ZinSearch />
-              <div className="purple-border"></div>
-              <Form.Item
-                className="mb-0"
-                name='searchValue'
-                rules={[
-                  {
-                    min: 3,
-                    message: 'Minimum 3 character'
-                  },
-                  {
-                    required: true,
-                    message: '',
-                  }
-                ]}
-              >
-                <Input
-                  value={searchQueryValue}
-                  placeholder="Enter search"
-                  onChange={submissionSearchChange}
-                  suffix={
-                    searchQueryValue.length >= 3 && (
-                      <ZinClear
-                        onClick={() => { clearFunc() }}
-                        style={{ color: 'rgba(0, 0, 0, 0.25)', cursor: 'pointer' }}
-                      />
-                    )
-                  }
-                  // disabled={onClickFilterSearchDisabled}   
-                  ref={inputRef}
-                  autoFocus
-                />
-
-              </Form.Item>
-            </Form>
-            {searchError && <div className="search-error">{searchError}</div>}
-          </div>
-          <div className={selectedItem ? "cursor-pointer ms-3 sort-bgFilter" : "ms-3 cursor-pointer"} >
-            <Tooltip placement="top" title="Sort by">
-              <Dropdown
-                menu={{
-                  items: sortingList,
-                  selectable: true,
-                }}
-                trigger="click"
-                arrow={{
-                  pointAtCenter: true
-                }}
-              >
-                <ZinSort />
-              </Dropdown>
-            </Tooltip>
+            <ZinSearch onClick={() => inputRef.current?.focus()} />
+            <Input
+              ref={inputRef}
+              placeholder="Search users"
+              value={searchText}
+              onChange={handleSearch}
+              suffix={
+                searchText ? (
+                  <ZinClear onClick={handleClearSearch} style={{ cursor: "pointer" }} />
+                ) : null
+              }
+              autoFocus
+            />
           </div>
           <div className="toolbar me-3 ms-3 text-end">
             <Button type="primary" size="small">
@@ -440,14 +290,19 @@ export const AdminUser = () => {
           </div>
         </div>
 
-        <Table
-          columns={usercolumns}
-          dataSource={filteredData}
-          pagination={tableParams.pagination}
-          onChange={handleTableChange}
-          loading={loadingList}
-          scroll={{ x: 1500, y: "calc(100vh -  346px)" }}
-        />
+        <Spin spinning={loadingList} size="large">
+          <Table
+            columns={usercolumns}
+            dataSource={filteredData}
+            pagination={{
+              current: currentPage,
+              pageSize: rowsPerPage,
+              total: totalRows,
+              onChange: handlePageChange,
+            }}
+            scroll={{ x: 1500, y: "calc(100vh -  346px)" }}
+          />
+        </Spin>
       </div>
     </div>
   );

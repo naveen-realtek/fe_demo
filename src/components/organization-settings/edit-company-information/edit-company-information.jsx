@@ -32,21 +32,21 @@ function EditCompanyInformation() {
     useEffect(() => {
         if (companyData) {
             form.setFieldsValue({
-                city: companyData.address?.city || "",
-                country: companyData.address?.country || "",
+                city: companyData.address?.city || null,
+                country: companyData.address?.country || null,
                 address1: companyData.address?.line1 || "",
                 address2: companyData.address?.line2 || "",
                 pincode: companyData.address?.pincode || "",
-                state: companyData.address?.state || "",
+                state: companyData.address?.state || null,
                 companyName: companyData.company_name || "",
                 contactNumber: companyData.phone_number || "",
-                contactCountryCode: companyData.phone_code || "",
+                contactCountryCode: companyData.phone_code || null,
                 companyWebsite: companyData.website || "",
                 email: companyData.email || "",
-                timezone: companyData.time_zone || "",
-                timeFormat: companyData.time_format || "",
-                dateFormat: companyData.date_format || "",
-                currency: companyData.currency || "",
+                timezone: companyData.time_zone || null,
+                timeFormat: companyData.time_format || null,
+                dateFormat: companyData.date_format || null,
+                currency: companyData.currency || null,
                 logo_copy_location: companyData.logo_copy_location || "",
 
             });
@@ -81,7 +81,7 @@ function EditCompanyInformation() {
     }
     const onFinish = async (values) => {
         console.log("values", values);
-        setLoading(true);
+        setLoading(false);
 
         const jobsformdata = setFormData(values);
         console.log("jobsformdata", jobsformdata);
@@ -255,7 +255,7 @@ function EditCompanyInformation() {
     const [timezones, setTimezones] = useState([]);
 
     const fetchTimezones = async () => {
-        setLoading(true);
+        setLoading(false);
         try {
             const response = await candidateService.gettimezone();
             if (response?.data?.length) {
