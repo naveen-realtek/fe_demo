@@ -131,13 +131,13 @@ permissions:
   actions: write
 
 jobs:
-  merge-and-trigger:
+  git_pipeline:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Fetch full history for merging
+          fetch-depth: 0  # Fetch full history for proper merging
 
       - name: Configure Git
         run: |
@@ -147,7 +147,7 @@ jobs:
       - name: Checkout main branch
         run: |
           git checkout main
-          git pull origin main  # Ensure latest version
+          git pull origin main  # Ensure it's up to date
 
       - name: Merge dev into main (resolve conflicts in favor of dev)
         run: |
@@ -157,16 +157,16 @@ jobs:
           git commit --allow-empty -m "Auto-merging dev into main - resolved conflicts with dev's changes"
 
       - name: Push merged changes to main
-        run: git push origin main
+        run: |
+          git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
   trigger-jenkins:
-    needs: merge-and-trigger
+    needs: git_pipeline  # Ensures this job runs only after git_pipeline completes successfully
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Jenkins Job
         run: |
-          curl -X POST "http://192.168.1.65:8080/job/github_actions/buildWithParameters" \
+          curl -X POST "http://192.168.1.65:8080/job/git_pipeline/buildWithParameters" \
                --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}"
-
