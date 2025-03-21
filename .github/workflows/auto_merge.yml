@@ -168,5 +168,4 @@ jobs:
     steps:
       - name: Trigger Jenkins Job
         run: |
-          curl -X POST "http://192.168.1.65:8080/job/git_pipeline/buildWithParameters" \
-               --user "${{ secrets.JENKINS_USER }}:${{ secrets.JENKINS_API_TOKEN }}"
+          curl -X POST "http://192.168.1.65:8080/job/git_pipeline/build"      --user "naveen_local:116f1b7ae6450bb77bd20562b0c4475b29"
