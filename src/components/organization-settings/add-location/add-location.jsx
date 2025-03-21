@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Breadcrumb,
   Button,
   Form,
   Input,
-  Space,
+
   Select,
   Switch,
   notification,
@@ -13,55 +13,27 @@ import {
   message,
 } from "antd";
 import { Link, useLocation } from "react-router-dom";
-import {
-  ZinAddIcon,
-  ZinDeleteIcon,
-  ZinRightArrow,
-  MoreIconDelete,
-  ZinUploadIcon,
-} from "../../images";
+import { ZinRightArrow } from "../../images";
 import { useNavigate } from "react-router-dom";
-
-import {
-  ClientService,
-  candidateService,
-  authorizationService,
-} from "../../../service";
+import { candidateService, authorizationService } from "../../../service";
 import { OverlayMenuDropdown } from "../../../shared-components/overlay-menu/overlay-menu";
 import { Currency } from "../../../shared-components/currency";
 import { DateFormat } from "../../../shared-components/date-format";
 import { TimeFormat } from "../../../shared-components/time-format";
+
+
 
 export const OrganizationLocationAdd = () => {
   const [isActive, setIsActive] = useState(true);
   const { Option } = Select;
   const navigate = useNavigate();
   const [form] = Form.useForm();
-
+  const [Loading, setLoading] = useState(false);
   const [loading, setloading] = useState(false);
-
-  const [documentsFile, setDocumentsFile] = useState([]);
-  const [documentsError, setDocumentsError] = useState("");
-  const [isEditMode, setIsEditMode] = useState(false);
-
-  const location = useLocation();
-  const editCient = location.state;
-  const editCientEditMode =
-    editCient && editCient.isEditModeStatus
-      ? editCient.isEditModeStatus
-      : false;
-
-  const editCientData = editCient && editCient.state;
 
   const { Dragger } = Upload;
 
-  const onChange = (value) => {
-    console.log("Selected value: ", value);
-  };
-
-  const onSearch = (value) => {
-    console.log("Search input: ", value);
-  };
+  // -----------------------------------------------   notification -------------------------------//
 
   const openNotification = (message, type) => {
     notification[type]({
@@ -77,20 +49,24 @@ export const OrganizationLocationAdd = () => {
     setIsActive(checked);
   };
 
+  // ---------------------------------------------------- Add values -------------------------------------------//
+
   function clientAdd(values) {
     let clientAdd = {
       unit_name: values.unit_name || "",
-      time_zone: values.timezone || "",
-      time_format: values.timeFormat || "",
-      date_format: values.dateFormat || "",
+      time_zone: values.time_zone || "",
+      time_format: values.time_format || "",
+      date_format: values.date_format || "",
       currency: values.currency || "",
+      phone_code: values.phone_code || "",
+      phone_number: values.phone_number || "",
 
       email: values.email ? values.email : "",
       city: values.city ? values.city : "",
       country: values.country ? values.country : "",
-      address_line1: values.line1 ? values.line1 : "",
-      address_line2: values.line2 ? values.line2 : "",
-      zip_code: values.pincode ? values.pincode : "",
+      address_line1: values.address_line1 ? values.address_line1 : "",
+      address_line2: values.address_line2 ? values.address_line2 : "",
+      zip_code: values.zip_code ? values.zip_code : "",
       state: values.state ? values.state : "",
       status: isActive,
       schemaVersion: 1,
@@ -98,100 +74,60 @@ export const OrganizationLocationAdd = () => {
     return clientAdd;
   }
 
-  // function contactDetailsFormater(value) {
-  //     let returnValue = [];
-  //     if (value.length > 0) {
-  //         for (let i = 0; i < value.length; i++) {
-  //             if (value[i] != "") {
-  //                 let objTemp = {
-  //                     clientContactId: i,
-  //                     contactNumber: value[i].contactNumber,
-  //                     contactType: value[i].contactType,
-  //                     countryCode: value[i].countryCode,
-  //                     email: value[i].email,
-  //                     firstName: value[i].firstName,
-  //                     lastName: value[i].lastName,
-  //                 };
-  //                 returnValue.push(objTemp);
-  //             }
-  //         }
-  //     }
-  //     return returnValue;
-  // }
+  // -------------------------------------------------   Edit values -----------------------------------//
 
-  const clientValidate = async (values) => {
-    const response = await ClientService.clientValidate(values);
-    if (response && response.status == false) {
-      form.setFieldsValue({
-        clientName: "",
-      });
-      openNotification(response && response.error, "warning");
-    }
-  };
+  const { state } = location || {};
 
-  const handleChangeNumeric = (e) => {
-    const charCode = e.which ? e.which : e.keyCode;
-    if (!/^[0-9]+$/.test(String.fromCharCode(charCode))) {
-      e.preventDefault();
-    }
-  };
+  const location = useLocation();
+  const { locationData, isEditModeStatus } = location.state || {};
+  const editCient = location.state;
+  const editCientEditMode =
+    editCient && editCient.isEditModeStatus
+      ? editCient.isEditModeStatus
+      : false;
+
+  const editCientData = editCient && editCient.state && locationData;
+  console.log("editCientData", editCientData);
+  console.log("editCientEditMode", editCientEditMode);
+  console.log("editCient", editCient);
 
   useEffect(() => {
     if (editCientEditMode && editCientData) {
-      console.log("Editing Mode Active:", editCientEditMode);
-      console.log("editCientData:", editCientData);
-
       form.setFieldsValue({
         unit_name: editCientData?.unit_name || "",
         time_zone: editCientData?.time_zone || "",
-        time_format: editCientData?.timeFormat || "",
-        date_format: editCientData?.dateFormat || "",
+        time_format: editCientData?.time_format || "",
+        date_format: editCientData?.date_format || "",
+        zip_code: editCientData?.zip_code || "",
+        phone_code: editCientData?.phone_code || "",
+        phone_number: editCientData?.phone_number || "",
         currency: editCientData?.currency || "",
-
         email: editCientData?.email || "",
-        city: editCientData?.address?.city || "",
-        country: editCientData?.address?.country || "",
-        address_line1: editCientData?.address?.line1 || "",
-        address_line2: editCientData?.address?.line2 || "",
-        zip_code: editCientData?.address?.pincode || "",
-        state: editCientData?.address?.state || "",
-        // clientContact: editCientData?.clientContact || [],
+        city: editCientData?.city || "",
+        country: editCientData?.country || "",
+        address_line1: editCientData?.address_line1 || "",
+        address_line2: editCientData?.address_line2 || "",
+        state: editCientData?.state || "",
       });
     }
   }, [editCientEditMode, editCientData, form]);
-
   useEffect(() => {
-    candidSelectDataApi();
-  }, []);
+    console.log("editCientData inside useEffect:", editCientData);
+  }, [editCientData]);
+  
+  // ---------------------------------------------------- add & edit api ---------------------------------------//
 
   const onFinish = async (values) => {
     setloading(true);
-
-    const formattedValues = {
-        ...values,
-        time_zone: String(values.time_zone), // Ensure it's a string before submitting
-      };
-      console.log("Submitting:", formattedValues);
     try {
-      const clientAddFormData = clientAdd(values); // Convert form values
-      const clientData = new FormData();
-      clientData.append("clientDetails", JSON.stringify(clientAddFormData));
-
-      Object.keys(documentsFile).forEach((rowIndex) => {
-        const fileList = documentsFile[rowIndex];
-        fileList.forEach((file) => {
-          clientData.append("documents", file.originFileObj);
-        });
-      });
-
+      const clientAddFormData = clientAdd(values);
       let response;
       if (editCientEditMode) {
-        // ✅ Call API with correct ID
         response = await authorizationService.updatelocation(
-          editCientData.id,
-          clientData
+          editCientData && editCientData.id,
+          clientAddFormData
         );
-        message.success(response?.data || "Client updated successfully!");
+        message.success(response && response.data);
       } else {
         response = await authorizationService.addlocation(clientAddFormData);
       }
@@ -214,22 +150,6 @@ export const OrganizationLocationAdd = () => {
       setloading(false);
     }
   };
-
-  const [clientId, setClientId] = useState(null);
-  const [clientDetails, setClientDetails] = useState({});
-
-  // Get edit mode & client data from URL/state
-  useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const editId = searchParams.get("EditId");
-
-    if (editId) {
-      setIsEditMode(true);
-      setClientId(editId);
-    }
-  }, [location.search]);
-
-  // Fetch client details if editing
 
   //   ------------------   country_code --------------------//
 
@@ -288,7 +208,7 @@ export const OrganizationLocationAdd = () => {
   const [selectedState, setSelectedState] = useState(null);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [isStateFieldDisabled, setStateFieldDisabled] = useState(true);
-
+  
   const stateChange = async (stateId, option) => {
     const selectStateName = option.key;
     if (!stateId) {
@@ -351,84 +271,6 @@ export const OrganizationLocationAdd = () => {
     }
   }
 
-  const validateMessages = {
-    required: "Mandatory field",
-  };
-
-  const documentsValidator = (_, fileList) => {
-    if (fileList && fileList.length > 0) {
-      setDocumentsFile(fileList);
-      setDocumentsError("");
-    } else {
-      setDocumentsFile([]);
-      setDocumentsError("Resume is required");
-    }
-    return Promise.resolve();
-  };
-  const beforeUpload = (file) => {
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error("File must be smaller than 2MB!");
-    }
-    return isLt2M || Upload.LIST_IGNORE;
-  };
-
-  const handleFileChange = (fileList, index) => {
-    setDocumentsFile((prevState) => ({
-      ...prevState,
-      [index]: fileList,
-    }));
-
-    fileList.forEach((file) => {
-      if (file.status === "done") {
-        message.success(`${file.name} file uploaded successfully.`);
-      } else if (file.status === "error") {
-        message.error(`${file.name} file upload failed.`);
-      }
-    });
-  };
-
-  const handleRemove = (fieldKey, remove, index) => {
-    remove(fieldKey);
-    setDocumentsFile((prev) => {
-      const updated = { ...prev };
-      delete updated[index];
-      return updated;
-    });
-  };
-
-  const documentsProps = (index) => ({
-    beforeUpload: beforeUpload,
-    maxCount: 1,
-    accept: ".pdf",
-    onChange: ({ fileList }) => handleFileChange(fileList, index),
-    fileList: documentsFile[index] || [],
-    onRemove: () => {
-      setDocumentsFile((prevState) => {
-        const updated = { ...prevState };
-        delete updated[index];
-        return updated;
-      });
-      message.error(`File removed successfully`);
-    },
-  });
-
-  const [clientData, setClientData] = useState([]);
-  const [Loading, setLoading] = useState(false);
-
-  const fetchClientData = async () => {
-    setLoading(true);
-    try {
-      const response = await authorizationService.getlocationview(0, 10, "new"); // Fetch first 10 clients
-      console.log(" Fetched Client Data:", response);
-      setClientData(response.data || []);
-    } catch (error) {
-      console.error(" Error fetching client data:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // --------------------------------  Time zone ---------------------------------//
 
   const [timezones, setTimezones] = useState([]);
@@ -439,7 +281,7 @@ export const OrganizationLocationAdd = () => {
       if (response?.data?.length) {
         const formattedTimezones = response.data.map((tz) => ({
           label: tz.name, // Display text
-          value: String(tz.sourceId), // Ensure value is a string
+          value: String(tz.name), // Ensure value is a string
         }));
         setTimezones(formattedTimezones);
       }
@@ -453,6 +295,24 @@ export const OrganizationLocationAdd = () => {
   useEffect(() => {
     fetchTimezones();
   }, []);
+
+  // -------------------------------------   Required ---------------------------//
+
+  const validateMessages = {
+    required: "Mandatory field",
+  };
+
+  // ------------------------------------------   phone number -------------------------------------//
+
+  const handleChangeNumeric = (e) => {
+    const charCode = e.which ? e.which : e.keyCode;
+    if (!/^[0-9]+$/.test(String.fromCharCode(charCode))) {
+      e.preventDefault();
+    }
+  };
+
+
+
 
   return (
     <div className="edit-company-information">
@@ -470,9 +330,11 @@ export const OrganizationLocationAdd = () => {
             Organization Settings
           </Breadcrumb.Item>
           <Breadcrumb.Item>
-            <Link to="app/admin/location">Locations</Link>
+            <Link to="/app/admin/location">locations</Link>
           </Breadcrumb.Item>
-          <Breadcrumb.Item>Add Location</Breadcrumb.Item>
+          <Breadcrumb.Item className="breadcrumbsLink">
+            {editCientEditMode ? "Edit location " : "Add location"}
+          </Breadcrumb.Item>
         </Breadcrumb>
       </div>
       <div className="common-SpaceAdmin">
@@ -540,7 +402,7 @@ export const OrganizationLocationAdd = () => {
                           />
                         </Form.Item>
                       </div>
-                      {/* <div className="col-lg-6">
+                      <div className="col-lg-6">
                         <Form.Item
                           className="mb-3"
                           label="Contact number"
@@ -550,7 +412,7 @@ export const OrganizationLocationAdd = () => {
                           <Input.Group compact>
                             <div className="d-flex align-items-center">
                               <Form.Item
-                                name={[name, "phone_code"]}
+                                name="phone_code"
                                 rules={[
                                   {
                                     required: true,
@@ -586,7 +448,7 @@ export const OrganizationLocationAdd = () => {
                                 </Select>
                               </Form.Item>
                               <Form.Item
-                                name={[name, "phone_number"]}
+                                name="phone_number"
                                 rules={[
                                   {
                                     required: true,
@@ -606,9 +468,9 @@ export const OrganizationLocationAdd = () => {
                           </Input.Group>
                         </Form.Item>
                       </div>
-               */}
+
                       <div className="col-lg-6">
-                        <Form.Item name="line1" label="Address 1">
+                        <Form.Item name="address_line1" label="Address 1">
                           <Input
                             type="text"
                             size="large"
@@ -617,7 +479,7 @@ export const OrganizationLocationAdd = () => {
                         </Form.Item>
                       </div>
                       <div className="col-lg-6">
-                        <Form.Item name="line2" label="Address 2">
+                        <Form.Item name="address_line2" label="Address 2">
                           <Input
                             type="text"
                             size="large"
@@ -729,7 +591,7 @@ export const OrganizationLocationAdd = () => {
                       </div>
 
                       <div className="col-lg-6">
-                        <Form.Item required name="pincode" label="Zipcode">
+                        <Form.Item required name="zip_code" label="Zipcode">
                           <Input
                             type="text"
                             size="large"
@@ -771,7 +633,7 @@ export const OrganizationLocationAdd = () => {
                       <div className="col-lg-6">
                         <Form.Item
                           required
-                          name="timeFormat"
+                          name="time_format"
                           label="Time format"
                         >
                           <Select
@@ -791,7 +653,7 @@ export const OrganizationLocationAdd = () => {
                       <div className="col-lg-6">
                         <Form.Item
                           required
-                          name="dateFormat"
+                          name="date_format"
                           label="Date format"
                         >
                           <Select
@@ -843,7 +705,7 @@ export const OrganizationLocationAdd = () => {
                     loading={loading}
                     htmlType="submit"
                   >
-                    <span>{editCientEditMode ? "Update" : "Save"}</span>
+                    {editCientEditMode ? "Update" : "Add "}
                   </Button>
                 </div>
               </Form>

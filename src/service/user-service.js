@@ -155,8 +155,6 @@ export class AuthorizationService {
     }
   }
 
-
-
   async getAllTeams(offset, limit, teamId) {
     try {
       const queryParams = new URLSearchParams({ offset, limit });
@@ -271,34 +269,23 @@ export class AuthorizationService {
     }
   }
 
-
-
   async createcompany() {
-    const response = await axios.get(
-      `${this.urlPrefix}/get-company-details`
-    );
+    const response = await axios.get(`${this.urlPrefix}/get-company-details`);
     if (response.status === 200) {
       return response.data;
     } else {
       return { items: [] };
     }
-
   }
-
-
 
   async createcompanyDetail() {
-    const response = await axios.get(
-      `${this.urlPrefix}/get-company-details`
-    );
+    const response = await axios.get(`${this.urlPrefix}/get-company-details`);
     if (response.status === 200) {
       return response.data;
     } else {
       return { items: [] };
     }
-
   }
-
 
   async updatecompany(FormData, companyId) {
     try {
@@ -326,7 +313,9 @@ export class AuthorizationService {
     }
   }
   async getCompanyPhotoView(companyPhoto) {
-    const response = await axios.get(`${this.urlPrefix}/view-profile?path=${companyPhoto}`);
+    const response = await axios.get(
+      `${this.urlPrefix}/view-profile?path=${companyPhoto}`
+    );
     if (response.status == 200) {
       return response.data;
     } else {
@@ -334,11 +323,14 @@ export class AuthorizationService {
     }
   }
 
-
   async getlocationview(offset, limit, sortBy, search = "") {
     try {
       const response = await axios.get(
-        `${this.urlPrefix}/get-all-locations?offset=${offset}&limit=${limit}&sortBy=${sortBy}&search=${encodeURIComponent(search)}`
+        `${
+          this.urlPrefix
+        }/get-all-locations?offset=${offset}&limit=${limit}&sortBy=${sortBy}&search=${encodeURIComponent(
+          search
+        )}`
       );
       if (response && response.status === 200) {
         return response.data;
@@ -350,9 +342,6 @@ export class AuthorizationService {
       return { items: [] };
     }
   }
-
-
-
 
   async addlocation(clientAddFormData) {
     try {
@@ -368,6 +357,39 @@ export class AuthorizationService {
     } catch (error) {
       console.error("Error during API request:", error);
       return { items: [] };
+    }
+  }
+
+  async getlocationview(offset, limit, sortBy) {
+    try {
+      const response = await axios.get(
+        `${this.urlPrefix}/get-all-locations?offset=${offset}&limit=${limit}&sortBy=${sortBy}`
+      );
+      if (response && response.status === 200) {
+        return response.data;
+      } else {
+        return { items: [] };
+      }
+    } catch (error) {
+      console.error("Error fetching client data:", error);
+      return { items: [] };
+    }
+  }
+
+  async updatelocation(id, clientAddFormData) {
+    try {
+      const response = await axios.put(
+        `${this.urlPrefix}/update-location?locationid=${id}`,
+        clientAddFormData
+      );
+      if (response && response.status === 200) {
+        return response.data;
+      } else {
+        return { status: false };
+      }
+    } catch (error) {
+      console.error("Error during API request:", error);
+      return { status: false };
     }
   }
 }

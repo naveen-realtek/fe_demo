@@ -1,95 +1,190 @@
 // User Roles styles
 .roles-list {
-    ul {
-        padding: 0;
+  ul {
+    padding: 0;
 
-        li {
-            list-style: none;
-        }
+    li {
+      list-style: none;
     }
+  }
 
-    .roles-list-item {
-        border-radius: 8px;
-        background: #E5E7F3;
-    }
+  .roles-list-item {
+    border-radius: 8px;
+    background: #e5e7f3;
+  }
+}
+
+.roles-active-table thead {
+  position: sticky;
 }
 
 .roles-active-table {
+  td,
+  th {
+    padding: 12px 15px;
+  }
+
+  thead {
+    th {
+      border-bottom: 1px solid #586888;
+    }
+  }
+
+  tbody {
+    th {
+      border-bottom: 1px solid #ddddf8;
+    }
+  }
+
+  .roles-group-head {
+    .tree-view-title {
+      padding: 12px 15px;
+    }
+
+    th {
+      border-bottom: 0px solid #ddddf8;
+    }
+  }
+  .roles-group-body td.tree-view-list {
+  }
+  .roles-group-body {
+    tr:last-child {
+      th:first-child {
+        span {
+          &::after {
+            content: "";
+            background-color: #ffffff;
+            height: 21px;
+            width: 15px;
+            display: inline-block;
+            margin: 0px 6px -18px -20px;
+            left: -100%;
+            position: relative;
+          }
+        }
+      }
+
+      th {
+        border-bottom: 1px solid #ddddf8;
+      }
+    }
+
+    th {
+      border-bottom: none;
+    }
+
+    .tree-view-list {
+      position: relative;
+    }
+
+    .tree-view-list span {
+      padding: 12px 15px;
+      margin-left: 30px;
+      display: inline-block;
+      border-left: 1px solid #747474;
+      position: relative;
+    }
+
+    .tree-view-list:last-child span {
+      border-left: none;
+    }
+
+    .tree-view-list span::before {
+      content: "";
+      background-color: #747474;
+      height: 1px;
+      width: 15px;
+      display: inline-block;
+      margin: 0px 6px 3px -15px;
+    }
+
+    .tree-view-list:last-child span::before {
+      content: none;
+      height: 24px;
+    }
+
+    .tree-view-list {
+      span {
+        padding: 12px 15px;
+        border-left: 1px solid #747474;
+        margin-left: 30px;
+        display: inline-block;
+
+        &::before {
+          content: "";
+          background-color: #747474;
+          height: 1px;
+          width: 15px;
+          display: inline-block;
+          margin: 0px 6px 3px -15px;
+        }
+      }
+      .tree-view-list:last-child span {
+        border-left: none;
+        background-color: red !important;
+      }
+      .tree-view-list:last-child span::before {
+        content: none;
+      }
+    }
 
     td,
     th {
-        padding: 12px 15px;
+      padding: 0;
     }
+  }
+}
 
-    thead {
-        th {
-            border-bottom: 1px solid #586888;
-        }
-    }
+.user-role-main-header {
+  padding-bottom: 10px;
+}
 
-    tbody {
-        th {
-            border-bottom: 1px solid #DDDDF8;
-        }
-    }
 
-    .roles-group-head {
-        .tree-view-title {
-            padding: 12px 15px;
-        }
+.equal-height-field {
+  height: 20px;
+  min-height: 20px;
+}
 
-        th {
-            border-bottom: 0px solid #DDDDF8;
-        }
-    }
 
-    .roles-group-body {
-        tr:last-child {
-            th:first-child {
-                span {
-                    &::after {
-                        content: '';
-                        background-color: #FFFFFF;
-                        height: 21px;
-                        width: 15px;
-                        display: inline-block;
-                        margin: 0px 6px -18px -20px;
-                        left: -100%;
-                        position: relative;
-                    }
-                }
-            }
+.edit-company-information {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
 
-            th {
-                border-bottom: 1px solid #DDDDF8;
-            }
-        }
+.zn-admin-Card {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  
+}
 
-        th {
-            border-bottom: none;
-        }
+.zn-card-body {
+  flex-grow: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 
-        .tree-view-list {
-            span {
-                padding: 12px 15px;
-                border-left: 1px solid #747474;
-                margin-left: 30px;
-                display: inline-block;
+.roles-active-sec {
+  flex-grow: 1;
+  overflow-y: auto; /* Scroll only inside the table section */
+  height: calc(100vh - 250px); /* Adjust based on header/footer height */
+}
 
-                &::before {
-                    content: '';
-                    background-color: #747474;
-                    height: 1px;
-                    width: 15px;
-                    display: inline-block;
-                    margin: 0px 6px 3px -15px;
-                }
-            }
-        }
+.roles-active-table {
+  width: 100%;
+  min-height: calc(100% - 50px); 
+}
 
-        td,
-        th {
-            padding: 0;
-        }
-    }
+.add-form-footer-btns {
+  position: absolute;
+  bottom: 0;  
+  width: 100%;
+  background: white;
+  padding: 10px;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 999;
 }

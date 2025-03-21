@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Breadcrumb,
@@ -9,7 +10,6 @@ import {
   Input,
   Switch,
   Tag,
-  notification,
   message,
 } from "antd";
 import { Link } from "react-router-dom";
@@ -22,13 +22,8 @@ export const SubmissionsInternalStatusTab = () => {
   const [loading, setLoading] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [editMode, setEditMode] = useState(false);
-  const [openSubmissionsinternalAdd, setOpenSubmissionsinternalAdd] =
-    useState(false);
-  const [openSubmissionsinternalEdit, setOpenSubmissionsinternalEdit] =
-    useState(false);
-  const [jobSubmissionsinternalView, setJobSubmissionsinternalView] = useState(
-    []
-  );
+  const [openSubmissionsinternalAdd, setOpenSubmissionsinternalAdd] = useState(false);
+  const [jobSubmissionsinternalView, setJobSubmissionsinternalView] = useState([]);
   const [SubmissionsinternalEdit, setSubmissionsinternalEdit] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -76,12 +71,13 @@ export const SubmissionsInternalStatusTab = () => {
       setSelectedId(null);
     }
   };
+
   const [editData, setEditData] = useState(null);
 
   const handleEditClick = async (record) => {
     if (record) {
       setEditMode(true);
-      const data = await masterService.detailMaster("internalSubmission", record);
+      const data = await masterService.detailMaster("internalSubmission", record.uniqueId);
       setEditData(data);
       form.setFieldsValue({
         name: data?.data?.name,
@@ -89,7 +85,6 @@ export const SubmissionsInternalStatusTab = () => {
         status: data?.data?.status ?? false,
       });
       setIsActive(data?.data?.status === true);
-
     } else {
       setEditMode(false);
       setEditData(null);
@@ -98,46 +93,14 @@ export const SubmissionsInternalStatusTab = () => {
     setOpenSubmissionsinternalAdd(true);
   };
 
-  const handleSubmissionsinternalSubmit = async () => {
-    try {
-      const values = await form.validateFields();
-      setLoading(true);
-
-      const payload = {
-        uniqueId: SubmissionsinternalEdit?.uniqueId,
-        name: values.name,
-        type: values.type,
-        status: values.status,
-      };
-
-      const response = await masterService.EditMasters(
-        payload,
-        "internalSubmission"
-      );
-
-      if (response.status) {
-        message.success("Updated successfully");
-        getJobSubmissionsinternalView();
-        setOpenSubmissionsinternalEdit(false);
-      } else {
-        message.error("Failed to update submission status");
-      }
-    } catch (error) {
-      console.error("Error updating submission status:", error);
-      message.error("An error occurred while updating the submission status");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const submissionsinternalAdd = () => {
     form.resetFields();
+    setEditMode(false);
     setOpenSubmissionsinternalAdd(true);
   };
 
   const submissionsinternalSave = () => {
     setOpenSubmissionsinternalAdd(false);
-    setOpenSubmissionsinternalEdit(false);
   };
 
   const handleAddFormSubmit = async (values) => {
@@ -145,54 +108,25 @@ export const SubmissionsInternalStatusTab = () => {
     try {
       if (editMode) {
         await masterService.EditMasters("internalSubmission", {
-          name: values && values?.name,
-          status: values && values?.status,
+          name: values.name,
+          status: values.status,
           type: values.type,
-          uniqueId: editData && editData.data.uniqueId
+          uniqueId: editData?.data?.uniqueId
         });
       } else {
         await masterService.addMasters("internalSubmission", {
-          name: values && values?.name,
+          name: values.name,
           type: values.type,
-          status: isActive && isActive ? true : false
+          status: values.status
         });
       }
       setOpenSubmissionsinternalAdd(false);
+      getJobSubmissionsinternalView();
     } catch (error) {
       console.error("Error saving source:", error);
     } finally {
       setLoading(false);
     }
-    getJobSubmissionsinternalView();
-    // try {
-    //   const values = await form.validateFields();
-    //   setLoading(true);
-
-    //   const payload = {
-    //     name: values.name,
-    //     type: values.type,
-    //     status: isActive && isActive ? true : false,
-    //   };
-
-    //   const response = await masterService.addMasters(
-    //     "internalSubmission",
-    //     payload
-    //   );
-
-    //   if (response.status) {
-    //     message.success("Added successfully");
-    //     getJobSubmissionsinternalView();
-    //     setOpenSubmissionsinternalAdd(false);
-    //     form.resetFields();
-    //   } else {
-    //     message.error("Failed to add submission status");
-    //   }
-    // } catch (error) {
-    //   console.error("Error adding submission status:", error);
-    //   message.error("An error occurred while adding the submission status");
-    // } finally {
-    //   setLoading(false);
-    // }
   };
 
   const getJobSubmissionsinternalView = async (page = 1, pageSize = 10) => {
@@ -258,26 +192,6 @@ export const SubmissionsInternalStatusTab = () => {
     setJobSubmissionsinternalView(sortedData);
   };
 
-  // const handleStatusToggle = async (checked, record) => {
-  //   setLoading(true);
-  //   try {
-  //     const result = await masterService.updateMasterFeedStatus(
-  //       "internalSubmission",
-  //       record.UniqueId,
-  //       checked
-  //     );
-  //     console.log(`Master feed status updated to ${checked}:`, result);
-  //     if (result.status) {
-  //       getJobSubmissionsinternalView();
-  //     } else {
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating master feed status:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleStatusToggle = async (checked, record) => {
     setLoading(true);
     try {
@@ -295,6 +209,7 @@ export const SubmissionsInternalStatusTab = () => {
       setLoading(false);
     }
   };
+
   const submissionsinternalcolumns = [
     {
       key: "1",
@@ -340,7 +255,7 @@ export const SubmissionsInternalStatusTab = () => {
         <div className="d-flex justify-content-center gap-4">
           <ZinEditIcon
             className="cursor-pointer"
-            onClick={() => handleEditClick(record.uniqueId)}
+            onClick={() => handleEditClick(record)}
           />
           <ZinDeleteIcon
             className="cursor-pointer"
@@ -352,10 +267,12 @@ export const SubmissionsInternalStatusTab = () => {
       className: "actioncolumn-sticky",
     },
   ];
+
   const onChangeSwitch = (checked) => {
     setIsActive(checked);
     form.setFieldsValue({ status: checked }); // Update form field value
   };
+
   return (
     <>
       <div className="admin-breadcrums">
@@ -371,9 +288,7 @@ export const SubmissionsInternalStatusTab = () => {
               <Link to="/app/admin">Admin</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item>Masters</Breadcrumb.Item>
-            <Breadcrumb.Item>
-              Submissions
-            </Breadcrumb.Item>
+            <Breadcrumb.Item>Submissions</Breadcrumb.Item>
             <Breadcrumb.Item>Status</Breadcrumb.Item>
           </Breadcrumb>
           <div>
@@ -409,12 +324,13 @@ export const SubmissionsInternalStatusTab = () => {
         title={editMode ? "Edit" : "Add"}
         centered
         onCancel={submissionsinternalSave}
-        footer={
-          <>
-            <Button type='seconday' size='small'></Button>
-            <Button type='primary' size='small'></Button>
-          </>
-        }
+        footer={[
+        
+            <>
+                      <Button type='seconday' size='small'></Button>
+                      <Button type='primary' size='small'></Button>
+                    </>
+        ]}
       >
         <Form
           form={form}
@@ -447,7 +363,7 @@ export const SubmissionsInternalStatusTab = () => {
               </Form.Item>
             </div>
             <div className="col-lg-12">
-              <Form.Item label="Status" name="name">
+              <Form.Item label="Name" name="name">
                 <Input type="text" size="large" placeholder="Enter status" />
               </Form.Item>
             </div>
@@ -463,95 +379,34 @@ export const SubmissionsInternalStatusTab = () => {
               </Form.Item>
             </div>
             <div className='on-submitaddClient'>
-              <Button type='seconday' size='small' className='' onClick={submissionsinternalSave}>
-                Cancel
-              </Button>
-              <Button type="primary" size='small' htmlType="submit" className='ms-3'
-              >
-                {editMode ? "Update" : "Save"}
-              </Button>
-            </div>
+            <Button key="back" onClick={submissionsinternalSave}>
+  Cancel
+</Button>
+<Button key="submit" type='primary' className='ms-3' loading={loading} onClick={() => form.submit()}>
+  {editMode ? "Update" : "Add"}
+</Button>
+</div>
           </div>
         </Form>
       </Modal>
-
-      {/* <Modal
-        open={openSubmissionsinternalEdit}
-        title="Edit"
-        centered
-        onCancel={submissionsinternalSave}
-        footer={[
-          <Button key="cancel" onClick={submissionsinternalSave}>
-            Cancel
-          </Button>,
-          <Button
-            key="submit"
-            type="primary"
-            loading={loading}
-            onClick={handleSubmissionsinternalSubmit}
-          >
-            Update
-          </Button>,
-        ]}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmissionsinternalSubmit}
-        >
-          <Form.Item label="Type" name="Type">
-            <Select
-              size="large"
-              showSearch
-              placeholder="Select Response Category"
-              optionFilterProp="children"
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toLowerCase()
-                  .includes(input.toLowerCase())
-              }
-              options={[
-                { value: "Positive", label: "Positive" },
-                { value: "Neutral", label: "Neutral" },
-                { value: "Negative", label: "Negative" },
-              ]}
-            />
-          </Form.Item>
-
-          <Form.Item label="Name" name="Name">
-            <Input type="text" size="large" placeholder="Enter Name" />
-          </Form.Item>
-
-          <Form.Item label="Status" name="Status" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-        </Form>
-      </Modal> */}
 
       <Modal
         centered
         title="Delete "
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
-        footer={
-          <>  <Button type='seconday' size='small'></Button>
-            <Button type='primary' size='small'></Button>
-          </>
-        }
+        footer={[
+          <Button key="back" onClick={() => setIsModalOpen(false)}>
+            Cancel
+          </Button>,
+          <Button key="submit" type='primary' className='ms-3' onClick={handleDelete}>
+            Delete
+          </Button>
+        ]}
       >
         <div className="row">
           <p>Are you sure you want to delete this internal submission status?</p>
-          <div className='on-submitaddClient'>
-            <Button type='seconday' size='small' className='' onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="primary" size='small' onClick={handleDelete} className='ms-3'
-            >
-              Delete
-            </Button>
-          </div>
         </div>
-
       </Modal>
     </>
   );
