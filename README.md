@@ -1,4 +1,4 @@
-# rltk-ADMN
+# rltk
 
 ## Environment file
 
