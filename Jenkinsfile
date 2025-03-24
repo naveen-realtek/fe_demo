@@ -142,6 +142,13 @@ node {
     stage('Clone Repository') {
         git branch: 'dev', credentialsId: 'new-git-id', url: 'https://github.com/naveen-realtek/fe_demo.git'
     }
+   stage('Create prod.env File') {
+        sh '''
+        printf 'ENVIRONMENT=dev
+PORT=4001
+APP_SBUI=http://192.168.1.66:6061/sbui' > ${WORKSPACE}/prod.env
+        '''
+    }
     
     stage('SonarQube Analysis') {
         withSonarQubeEnv(SONARQUBE_SERVER) {
