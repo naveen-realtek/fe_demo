@@ -1,8 +1,7 @@
-👤 Starting a new connection to: "192.168.1.49" port "22"
-⚙️ Starting address resolution of "192.168.1.49"
-⚙️ Address resolution finished
-⚙️ Connecting to "192.168.1.49" port "22"
-😨 Connection failed: connection refused. No more addresses to try.
+Staging Environment CHAT URL
+
+sh "curl -X POST -H 'Content-Type: application/json' -d '${message}' 'https://chat.googleapis.com/v1/spaces/AAQAr7d19Hw/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=hlRnU2u9WVIVJh006jkSnRAuGMf5dQU7Tbq3p9hipBc'"
+    }
 
 
 
